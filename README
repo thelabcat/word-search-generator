@@ -9,7 +9,7 @@ DON'T BE AFRAID: YOU DO NOT NEED TO COMPILE ANYTHING. THE SOURCE CODE RUNS AS IS
 However, to run the code, you must INSTALL THE LANGUAGE to run it. Easy-to-use INSTALLER IS AVAILABLE at python.org, so just download the latest (this program was written for and successfully run in python 3.8, but is expected to work with versions as far back as python 3.1)
 
 
-INSTALLATION:
+INSTALLATION AND STARTUP:
 
 Save the word_search_gen_22.pyw file somewhere. It will not output files when it runs, so your desktop is fine.
 
