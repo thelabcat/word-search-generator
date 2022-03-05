@@ -11,6 +11,9 @@ However, to run the code, you must INSTALL THE LANGUAGE to run it. Easy-to-use I
 
 INSTALLATION AND STARTUP:
 
+Download the .exe file and attempt to run it. If that fails, you can install Python and run the .py file as follows:
+
+
 Save the word_search_gen_22.pyw file somewhere. It will not output files when it runs, so your desktop is fine.
 
 Download and install a version of Python 3 (probably will currently be 3.8, which works).
