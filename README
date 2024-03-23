@@ -1,9 +1,9 @@
 Word Search Generator, v 2.2 instructions
 
-This program is meant to help homeschoolers and business teachers alike create their own custom word search puzzles for the kids (or themselves). Word search puzzles are really great for the mind.
+This program is meant to help homeschoolers and commercial teachers alike create their own custom word search puzzles for the kids (or themselves). Word search puzzles are really great for the mind.
 
-HARD DIRECTIONS ALLOWED!
-This program can be set to either use the modern, top-bottom, left-right directions, or to use non-european AKA all directions when generating puzzles.
+HARD DIRECTIONS SUPPORT:
+This program can be set to either use the easier, top-bottom, left-right directions, or to use non-european AKA all directions when generating puzzles.
 
 DON'T BE AFRAID: YOU DO NOT NEED TO COMPILE ANYTHING. THE SOURCE CODE RUNS AS IS.
 However, to run the code, you must INSTALL THE LANGUAGE to run it. Easy-to-use INSTALLER IS AVAILABLE at python.org, so just download the latest (this program was written for and successfully run in python 3.8, but is expected to work with versions as far back as python 3.1)
