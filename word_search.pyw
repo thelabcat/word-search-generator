@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-#Word Search program puzzle generator v 2.3
+#Word Search program puzzle generator v 2.3.1
 #Solo Deo gloria, amen.
 
 #Import modules
