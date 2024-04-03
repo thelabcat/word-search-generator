@@ -8,7 +8,7 @@ The source code runs as is. However, to run the code, you must install Python to
 Use the latest 3.x release. This program was written for and successfully run in python 3.8, but is expected to work with all 3.x verisons.
 
 
-# INSTALLATION AND STARTUP:
+## Installation and startup:
 
 Save the word_search_gen.pyw file somewhere. It will not output files when it runs, so your desktop is fine.
 
@@ -25,23 +25,23 @@ Within a minute or so, a simple GUI with a text entry area should appear:
 - The entry area has an explanatory line of text inserted at startup :) Delete that explanatory text, then enter one word per line with no punctuation. Capitalization will be ignored when generating the puzzle.
 
 
-# WORKFLOW (steps with c at the number are critical, everything else is just my plan of doing it):
+## Workflow:
 
-0) Open a text editor (doesn't matter how fancy) and make your list of words. You can even use an empty word processor document you'll be placing the puzzle in later. Just remember, if you're putting the puzzle in above the list, leave a one line space to paste in.
+1. Open a text editor (doesn't matter how fancy) and make your list of words. You can even use an empty word processor document you'll be placing the puzzle in later. Just remember, if you're putting the puzzle in above the list, leave a one line space to paste in.
 
-1c) Enter your list of words into the Word Search Generator, one word per line. You can copy paste from the word processor.
+2. Enter your list of words into the Word Search Generator, one word per line. You can copy paste from the word processor.
 
-2c) Click generate, then wait. The program may "freeze" for several seconds, but should not disappear (a crash).
+3. Click generate, then wait. The program may "freeze" for several seconds, but should not disappear (a crash).
 
-3c) A notification box will tell you that the puzzle generation was successful. Note: Though starting with a size determined from size_fac, the algorithm automatically increases puzzle size if there was no way to fit all the words in.
+4. A notification box will tell you that the puzzle generation was successful. Note: Though starting with a size determined from size_fac, the algorithm automatically increases puzzle size if there was no way to fit all the words in.
 
-4c) Click OK, but DO NOT close the main program window, as this will erase what it copied to the system clipboard.
+5. Click OK, but DO NOT close the main program window, as this will erase what it copied to the system clipboard.
 
-5c) Hop over to your word processor, and set the font to something monospaced (letters are all the same width). Examples: Consolas (I think), DejaVu Sans Mono, Freesans Mono, and any other fonts ending with "mono" are monospaced.
+6. Hop over to your word processor, and set the font to something monospaced (letters are all the same width). Examples: Consolas (I think), DejaVu Sans Mono, Freesans Mono, and any other fonts ending with "mono" are monospaced.
 
-6c) Paste (Ctrl+V on most systems). Ta-da!
+7. Paste (Ctrl+V on most systems). Ta-da!
 
-7) Include the word list, and you can close the generator program.
+8. Include the word list, and you can close the generator program.
 
 You can use "Justify Center" and font size options to make things look pretty :) Remember, only the actual puzzle need use the monospaced font. Everything else can be anything you like.
 
