@@ -9,14 +9,15 @@ Use the latest 3.x release. This program was written for and successfully run in
 
 You can find executables with bundled Python in the Releases page of this repository.
 
-
 ## Installation and startup:
 
-Save the word_search_gen.pyw file somewhere. It will not output files when it runs, so your desktop is fine.
+To run from source:
+    - Download the word_search.pyw file somewhere. It will not output files when it runs, so your desktop is fine.
+    - Download and install a version of Python 3 (probably will currently be 3.8, which works).
+    - Double-click the word_search.pyw file.
 
-Download and install a version of Python 3 (probably will currently be 3.8, which works).
-
-Double-click the word_search_gen.pyw file.
+To run from binary:
+    - Download the appropriate binary for your OS from the Releases page, and run it.
 
 Within a minute or so, a simple GUI with a text entry area should appear:
 
