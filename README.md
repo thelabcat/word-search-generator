@@ -7,6 +7,8 @@ This program can be set to either use the easier, top-bottom, left-right directi
 The source code runs as is. However, to run the code, you must install Python to run it, which you can download at python.org
 Use the latest 3.x release. This program was written for and successfully run in python 3.8, but is expected to work with all 3.x verisons.
 
+You can find executables with bundled Python in the Releases page of this repository.
+
 
 ## Installation and startup:
 
