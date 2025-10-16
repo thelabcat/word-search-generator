@@ -2,10 +2,10 @@
 
 This program is meant to help homeschoolers and commercial teachers alike create their own custom word search puzzles for the kids (or themselves). Word search puzzles are really great for the mind.
 
-This program can be set to either use the easier, top-bottom, left-right directions, or to use non-european AKA all directions when generating puzzles.
+This program can be set to either use only the three easier top-bottom and left-right directions, or to use all directions when generating puzzles.
 
 The source code runs as is. However, to run the code, you must install Python to run it, which you can download at python.org
-Use the latest 3.x release. This program was written for and successfully run in python 3.8, but is expected to work with all 3.x verisons.
+This program was written for and successfully run in python 3.13.
 
 You can find executables with bundled Python in the Releases page of this repository.
 
@@ -13,17 +13,17 @@ You can find executables with bundled Python in the Releases page of this reposi
 
 To run from source:
     - Download the word_search.pyw file somewhere. It will not output files when it runs, so your desktop is fine.
-    - Download and install a version of Python 3 (probably will currently be 3.8, which works).
+    - Download and install a version of Python 3.
     - Double-click the word_search.pyw file.
 
 To run from binary:
-    - Download the appropriate binary for your OS from the Releases page, and run it.
+    - Download the appropriate binary for your OS from the Releases page, and double-click it.
 
 Within a minute or so, a simple GUI with a text entry area should appear:
 
 - The checkbox enables the use of non-European word placing directions.
 
-- Size factor is the ratio of total puzzle letters to all letters that make up words. Cannot be less than 1. Defaults to 4, and the arrow buttons won't take you past 2-9, although you CAN enter numbers outside this range. The GUI will round down floating-point numbers. Entering 1 will make the most efficient puzzle possible, which will probably be ridiculously easy and is not reccommended.
+- Size factor is the ratio of total puzzle letters to all letters that make up words. Cannot be less than 1. Defaults to 4, and the arrow buttons won't take you past 2-9, although you CAN enter numbers outside this range. The GUI will round down floating-point numbers. Entering 1 will make the most efficient puzzle possible, which will probably be ridiculously easy and is not recommended.
 
 - The entry area has an explanatory line of text inserted at startup :) Delete that explanatory text, then enter one word per line with no punctuation. Capitalization will be ignored when generating the puzzle.
 
@@ -42,7 +42,7 @@ Within a minute or so, a simple GUI with a text entry area should appear:
 
 6. Hop over to your word processor, and set the font to something monospaced (letters are all the same width). Examples: Consolas (I think), DejaVu Sans Mono, Freesans Mono, and any other fonts ending with "mono" are monospaced.
 
-7. Paste (Ctrl+V on most systems). Ta-da!
+7. Paste (Ctrl+V on most systems). Ta-da! NOTE: If pasting fails, see issue #1. Currently, my workaround for this is having the program print the puzzle to stdout, i.e. a terminal it was run from. There is much information elsewhere on how to run Python programs from the terminal.
 
 8. Include the word list, and you can close the generator program.
 
