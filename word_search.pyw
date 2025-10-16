@@ -268,7 +268,7 @@ class Window(Tk):
         # Entry area for the words, and a scrollbar
         self.entry_frame = Frame(self)
         self.entry_frame.grid(row=2, sticky=NSEW)
-        self.text = Text(self.entry_frame, width=30, height=20, wrap="word")
+        self.text = Text(self.entry_frame, width=30, height=10, wrap="word")
         self.scrollbar = Scrollbar(self.entry_frame)
 
         self.scrollbar["command"] = self.text.yview  # Connect scrollbar to text
@@ -358,10 +358,17 @@ class Window(Tk):
         # Copy the finished puzzle to the Tkinter/system clipboard
         self.clipboard_clear()
         self.clipboard_append(text)
+
+        # Patch for issue #1
+        print("--- Puzzle ---")
+        print(text)
+        print("--------------")
+
         mb.showinfo(
             "Generation complete",
-            "The puzzle was copied to the clipboard. Paste into a word " +
-            "processor set for a monospaced font BEFORE closing this program.",
+            "The puzzle was copied to the clipboard (and printed to " +
+            "stdout). Paste into a word processor set for a monospaced font " +
+            "BEFORE closing this program.",
             )
 
 
