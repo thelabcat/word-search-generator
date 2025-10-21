@@ -49,7 +49,8 @@ SIZE_FAC_DEFAULT = 4
 ALL_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
-class Generator(object):
+class Generator:
+    """Generate a word search puzzle"""
     def get_puzzle_dim(self, words: list[str], size_fac: int):
         """
         Calculate puzzle dimension by word list.
@@ -156,7 +157,7 @@ class Generator(object):
         if not directions:
             directions = DIRECTIONS[:]
 
-        dim = self.get_puzzle_dim(words, size_fac) #Generate puzzle dimension
+        dim = self.get_puzzle_dim(words, size_fac)  # Generate puzzle dimension
         table = self.create_empty_table(dim)
         table_history = {}
 
@@ -251,8 +252,14 @@ class Window(Tk):
 
     def __init__(self):
         """Word Search Generator GUI"""
-        super(Window, self).__init__()
+        super().__init__()
         self.title("Word Search Gen")
+
+        # Tkinter variables
+        self.use_hard = BooleanVar(self, True)
+        self.size_fac_str = StringVar(self, SIZE_FAC_DEFAULT)
+        self.size_fac_str.trace_add("write", lambda *args: self.verify_size_fac())
+
         self.build()
         self.mainloop()
 
@@ -260,10 +267,7 @@ class Window(Tk):
         """Construct the GUI widgets"""
 
         # Checkbutton for using hard directions
-        self.use_hard = BooleanVar()
-        self.use_hard.set(True)
-        Checkbutton(self, text="Use upward/leftward directions", variable=self.use_hard, command=self.configure_directs).grid(row=0, sticky=N+E+W)
-        self.configure_directs()
+        Checkbutton(self, text="Use upward/leftward directions", variable=self.use_hard).grid(row=0, sticky=N+E+W)
 
         # Number area for size_fac
         self.sf_frame = Frame(self)
@@ -271,12 +275,10 @@ class Window(Tk):
 
         Label(self.sf_frame, text = "Size factor:").grid(row=0, column=0, sticky=E + N)
 
-        self.sf_spinbox = Spinbox(self.sf_frame, values=SIZE_FAC_OPTIONS, command=self.configure_size_fac)
+        self.sf_spinbox = Spinbox(self.sf_frame, values=SIZE_FAC_OPTIONS, textvariable=self.size_fac_str)
         self.sf_spinbox.grid(row=0, column=1, sticky=N + EW)
-        self.configure_size_fac()  # Create the size_fac variable and set the spinbox to the default
 
         self.sf_frame.columnconfigure(1, weight=1)  # Resize size factor frame around the column with the spinbox.
-
 
         # Entry area for the words, and a scrollbar
         self.entry_frame = Frame(self)
@@ -302,58 +304,48 @@ class Window(Tk):
         self.rowconfigure(2, weight=1)
         self.columnconfigure(0, weight=1)
 
-    def configure_directs(self):
+    @property
+    def directions(self) -> list[tuple[int, int]]:
         """Set up directions to use"""
         if self.use_hard.get():
-            self.directions = DIRECTIONS[:]
-        else:
-            self.directions = EASY_DIRECTIONS[:]
+            return DIRECTIONS
 
-    def configure_size_fac(self):
+        return EASY_DIRECTIONS
+
+    def verify_size_fac(self):
+        """Ensure that size_fac_str is numbers only and not below 1"""
+        self.size_fac_str.set(
+            max((
+                int(
+                    "0" + "".join((
+                        char for char in self.size_fac_str.get()
+                        if char.isnumeric()
+                        ))
+                    )
+                    ),
+                1,
+                )
+            )
+
+    @property
+    def size_fac(self) -> int:
         """Configure the size factor"""
 
-        # If size_fac is not set yet, set to default and alter spinbox
-        if not hasattr(self, "size_fac"):
-            self.size_fac = SIZE_FAC_DEFAULT * 1
-            self.clear_sf_spinbox()
-            return
-
-        inp_value = self.sf_spinbox.get()
-        try:
-            self.size_fac = int(inp_value)  # Try assigning the new size_fac
-
-            if self.size_fac < 1:  # Is size fac invalid?
-                raise ValueError
-
-            if str(self.size_fac) != inp_value:  # If we turned 4.0 into 4, alter the spinbox to match the interpretation
-                self.clear_sf_spinbox()
-
-        except ValueError:  # Entry was invalid, clear to existing size_fac value
-            self.clear_sf_spinbox()
-
-    def clear_sf_spinbox(self):
-        """set the SF spinbox to whatever the current size_fac is"""
-        self.sf_spinbox.delete(0, END)
-        self.sf_spinbox.insert(0, str(self.size_fac))
+        return int(self.sf_spinbox.get())
 
     def generate_puzzle(self):
         """Generate a puzzle from the input words"""
-        self.configure_size_fac()
 
-        words_raw = self.text.get(0.0, END).upper()  # Read the entry area for words
+        words_raw = self.text.get(0.0, END).strip().upper()  # Read the entry area for words
 
         # Checkpoint against invalid characters
         for letter in words_raw:
-            if letter not in ALL_CHARS + "\n":
+            if letter not in ALL_CHARS and not letter.isspace():
                 mb.showerror("Invalid text", "Enter one word per line with no punctuation.")
                 return
 
-        # Heal double-spacing
-        while "\n\n" in words_raw:
-            words_raw = words_raw.replace("\n\n", "\n")
-
         # Generate the puzzle
-        words = words_raw.splitlines()
+        words = words_raw.split()
         table = Generator().gen_word_search(words, directions=self.directions[:], size_fac=self.size_fac * 1)
 
         # Prepare the returned puzzle table for use (turn into text and fill with random characters)
