@@ -18,6 +18,7 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 S.D.G."""
 
 # Import modules
+import numpy as np
 import random
 from tkinter import *
 from tkinter.ttk import *
@@ -51,6 +52,7 @@ ALL_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 class Generator:
     """Generate a word search puzzle"""
+
     def get_puzzle_dim(self, words: list[str], size_fac: int):
         """
         Calculate puzzle dimension by word list.
@@ -80,7 +82,7 @@ class Generator:
             dim (int): The size of the puzzle.
 
         Returns:
-            table (list[list[str]]): The empty puzzle table.
+            table (np.array): The empty puzzle table.
         """
 
         # table = []
@@ -88,20 +90,7 @@ class Generator:
         #     table.append([])
         #     for x in range(dim):
         #         table[-1].append(" ")
-        return [[" "] * dim] * dim
-
-    def copy_table(self, table: list[list[str]]) -> list[list[str]]:
-        """
-        Create a shallow copy of the given table.
-
-        Args:
-            table (list[list[str]]): The table to duplicate.
-
-        Returns:
-            table (list[list[str]]): The duplicate of the table.
-        """
-
-        return [row.copy() for row in table]
+        return np.empty((dim, dim), dtype=str)
 
     def create_blank_tried_pos(self, words: list[str]) -> dict[str: list]:
         """
@@ -150,7 +139,7 @@ class Generator:
                 Defaults to SIZE_FAC_DEFAULT.
 
         Returns:
-            table (list[list[str]): The completed puzzle.
+            table (np.array): The completed puzzle.
         """
 
         # Default to all directions
@@ -169,7 +158,7 @@ class Generator:
 
             word = words[current_index]
 
-            table_history[word] = self.copy_table(table)  # Record previous table state
+            table_history[word] = table.copy()  # Record previous table state
 
             # Randomly shuffle all coordinate possibilities
             xlist, ylist = self.all_random_coords(dim)
@@ -178,7 +167,7 @@ class Generator:
             for x in xlist:
                 for y in ylist:
 
-                    # If all directions for this positionare used, this will be the default value
+                    # If all directions for this position are used, this will be the default value
                     success = False
 
                     # For all possible directions (randomized per position)...
@@ -188,7 +177,7 @@ class Generator:
                         if (x, y, direction) in tried_positions[word]:
                             continue  # We already tried this direction
 
-                        tcopy = self.copy_table(table)  # Copy the table
+                        tcopy = table.copy()  # Copy the table
                         pos = [x, y]  # Current position in the word. To be incremented forward by direction for each letter
                         success = True  # Assume that the letter placing loop will succeed ;-D
 
@@ -198,17 +187,17 @@ class Generator:
                                 if pos[0] < 0 or pos[1] < 0:
                                     raise IndexError
 
-                                tcopy[pos[1]][pos[0]]
+                                tcopy[*pos]
 
                             except IndexError:  # Position does not exist
                                 success = False
                                 break
 
                             # Try placing the letter...
-                            if tcopy[pos[1]][pos[0]] == " ":  # Letter successfully placed
-                                tcopy[pos[1]][pos[0]] = letter
+                            if not tcopy[*pos]:  # Letter successfully placed
+                                tcopy[*pos] = letter
 
-                            elif tcopy[pos[1]][pos[0]] == letter:  # Position was assigned, but is already this letter. Okay :-)
+                            elif tcopy[*pos] == letter:  # Position was assigned, but is already this letter. Okay :-)
                                 continue
 
                             else:  # Position is occupied by a different letter. Try another direction or spot...
@@ -226,7 +215,7 @@ class Generator:
                 if success:  # ...and at this X position
                     break
             if success:  # ...So, write changes to the table
-                table = self.copy_table(tcopy)
+                table = tcopy.copy()
                 tried_positions[word].append((x, y, direction))  # Record the tried position for potential FUTURE use
                 current_index += 1
 
@@ -234,7 +223,7 @@ class Generator:
                 current_index -= 1
                 # Since we're backing up in the word list, any previously tried placing positions for this word are now invalid
                 tried_positions[word] = []
-                table = self.copy_table(table_history[word])
+                table = table_history[word].copy()
 
                 # Nothing worked all the way back through the first word
                 # so the puzzle is too small for this word list.
@@ -259,6 +248,10 @@ class Window(Tk):
         self.use_hard = BooleanVar(self, True)
         self.size_fac_str = StringVar(self, SIZE_FAC_DEFAULT)
         self.size_fac_str.trace_add("write", lambda *args: self.verify_size_fac())
+
+        # Things to fill the NumPy array
+        self.fill_with_random = np.vectorize(lambda spot: spot if spot else random.choice(ALL_CHARS))
+        self.fill_with_space = np.vectorize(lambda spot: spot if spot else " ")
 
         self.build()
         self.mainloop()
@@ -333,6 +326,25 @@ class Window(Tk):
 
         return int(self.sf_spinbox.get())
 
+    def render_puzzle(self, table: np.array, fill: bool = True) -> str:
+        """Render a NumPy array of the puzzle to text
+
+        Args:
+            table (np.array): The puzzle table.
+            fill (bool): Wether or not to fill out the table with random characters.
+                Defaults to True.
+
+        Returns:
+            puzzle (str): The rendered puzzle."""
+
+        return "\n".join((
+            " ".join(row)
+            for row in (
+                self.fill_with_space,
+                self.fill_with_random,
+                )[fill](table)
+            ))
+
     def generate_puzzle(self):
         """Generate a puzzle from the input words"""
 
@@ -348,17 +360,8 @@ class Window(Tk):
         words = words_raw.split()
         table = Generator().gen_word_search(words, directions=self.directions[:], size_fac=self.size_fac * 1)
 
-        # Prepare the returned puzzle table for use (turn into text and fill with random characters)
-        text = ""
-        for row in table:
-            for letter in row:
-                if letter == " ":
-                    text += random.choice(ALL_CHARS)
-                else:
-                    text += letter
-                text += " "  # Space out the characters to make it square
-            text = text[:-1] + "\n"  # Remove the trailing space, and add a new line
-        text = text[:-1]  # remove the trailing newline
+        # Render the puzzle
+        text = self.render_puzzle(table)
 
         # Copy the finished puzzle to the Tkinter/system clipboard
         self.clipboard_clear()
@@ -375,6 +378,29 @@ class Window(Tk):
             "stdout). Paste into a word processor set for a monospaced font " +
             "BEFORE closing this program.",
             )
+
+        # Offer to print the key
+        if mb.askyesno(
+            "Show key",
+            "Would you like to copy (and print) the answer key now (will " +
+            "replace the puzzle)?",
+                ):
+            keytext = self.render_puzzle(table, fill=False)
+
+            # Copy the finished puzzle key to the Tkinter/system clipboard
+            self.clipboard_clear()
+            self.clipboard_append(keytext)
+
+            # Patch for issue #1
+            print("--- Puzzle ---")
+            print(keytext)
+            print("--------------")
+
+            mb.showinfo(
+                "Key copied",
+                "The answer key was copied to the clipboard (and printed to " +
+                "stdout)."
+                )
 
 
 # If this program was not imported, call the GUI
