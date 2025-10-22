@@ -18,12 +18,12 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 S.D.G."""
 
 # Import modules
-import numpy as np
 import random
 from tkinter import *
 from tkinter.ttk import *
 from tkinter import messagebox as mb
 from typing import Sequence
+import numpy as np
 
 # Coordinates start at top left, and are positive right down
 

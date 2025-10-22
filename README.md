@@ -7,6 +7,9 @@ This program can be set to either use only the three easier top-bottom and left-
 The source code runs as is. However, to run the code, you must install Python to run it, which you can download at python.org
 This program was written for and successfully run in python 3.13.
 
+This program also depends on the following Python libraries:
+- [NumPy](https://pypi.org/project/numpy/)
+
 You can find executables with bundled Python in the Releases page of this repository.
 
 ## Installation and startup:
