@@ -15,12 +15,11 @@ You can find executables with bundled Python in the Releases page of this reposi
 ## Installation and startup:
 
 To run from source:
-    - Download the word_search.pyw file somewhere. It will not output files when it runs, so your desktop is fine.
-    - Download and install a version of Python 3.
-    - Double-click the word_search.pyw file.
+1. Download the word_search.pyw file somewhere. It will not output files when it runs, so your desktop is fine.
+2. Download and install a version of Python 3.
+3. Double-click the word_search.pyw file.
 
-To run from binary:
-    - Download the appropriate binary for your OS from the Releases page, and double-click it.
+To run from binary, download the appropriate binary for your OS from the Releases page, and double-click it.
 
 Within a minute or so, a simple GUI with a text entry area should appear:
 
