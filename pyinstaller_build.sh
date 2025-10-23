@@ -48,7 +48,7 @@ output_name="$progname-$os_suffix-$(uname -m)"
 echo "Executable output name determined to be $output_name"
 
 echo "Installing requirements"
-#pip install -r requirements.txt
+pip install -r requirements.txt
 pip install -U setuptools pyinstaller
 
 echo "Building exe"
