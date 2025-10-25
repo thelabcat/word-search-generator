@@ -43,7 +43,7 @@ else
     source ./.venv/bin/activate
 fi
 
-progname="word_search"
+progname="word_search_generator"
 output_name="$progname-$os_suffix-$(uname -m)"
 echo "Executable output name determined to be $output_name"
 

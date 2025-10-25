@@ -2,7 +2,7 @@
 
 This program is meant to help homeschoolers and commercial teachers alike create their own custom word search puzzles for the kids (or themselves). Word search puzzles are really great for the mind.
 
-This program can be set to either use only the three easier top-bottom and left-right directions, or to use all directions when generating puzzles.
+This program can be set to either use only the four easier left-to-right and downward directions (not including the down-left diagonal), or to use all eight directions when generating puzzles.
 
 The source code runs as is. However, to run the code, you must install Python to run it, which you can download at python.org
 This program was written for and successfully run in python 3.13.
@@ -10,13 +10,13 @@ This program was written for and successfully run in python 3.13.
 This program also depends on the following Python libraries:
 - [NumPy](https://pypi.org/project/numpy/)
 
-You can find executables with bundled Python in the Releases page of this repository.
+You can find executables with Python and the dependencies bundled inside them in the Releases page of this repository.
 
 ## Installation and startup:
 
 To run from source:
 1. Download the word_search.pyw file somewhere. It will not output files when it runs, so your desktop is fine.
-2. Download and install a version of Python 3.
+2. Download and install a version of Python 3, then use `pip` to install the dependencies. This can be expedited by downloading the `requirements.txt` file, then running `pip install -r requirements.txt` in the console.
 3. Double-click the word_search.pyw file.
 
 To run from binary, download the appropriate binary for your OS from the Releases page, and double-click it.
@@ -36,17 +36,21 @@ Within a minute or so, a simple GUI with a text entry area should appear:
 
 2. Enter your list of words into the Word Search Generator, one word per line. You can copy paste from the word processor.
 
-3. Click generate, then wait. The program may "freeze" for several seconds, but should not disappear (a crash).
+3. Change the program's settings as desired.
 
-4. A notification box will tell you that the puzzle generation was successful. Note: Though starting with a size determined from size_fac, the algorithm automatically increases puzzle size if there was no way to fit all the words in.
+4. Click generate, then wait. The program may "freeze" for several seconds, but should not disappear (a crash).
 
-5. Click OK, but DO NOT close the main program window, as this will erase what it copied to the system clipboard.
+5. A notification box will tell you that the puzzle generation was successful. Note: Though starting with a size determined from size_fac, the algorithm automatically increases puzzle size if there was no way to fit all the words in.
 
-6. Hop over to your word processor, and set the font to something monospaced (letters are all the same width). Examples: Consolas (I think), DejaVu Sans Mono, Freesans Mono, and any other fonts ending with "mono" are monospaced.
+6. You can click OK, but DO NOT close the main program window, as this will erase what it copied to the system clipboard.
 
-7. Paste (Ctrl+V on most systems). Ta-da! NOTE: If pasting fails, see issue #1. Currently, my workaround for this is having the program print the puzzle to stdout, i.e. a terminal it was run from. There is much information elsewhere on how to run Python programs from the terminal.
+7. Hop over to your word processor, and set the font to something monospaced (letters are all the same width). Examples: Consolas (I think), DejaVu Sans Mono, Freesans Mono, and any other fonts ending with "mono" are monospaced.
 
-8. Include the word list, and you can close the generator program.
+8. Paste (Ctrl+V on most systems). Ta-da! NOTE: If pasting fails, see issue #1. Currently, my workaround for this is having the program print the puzzle to stdout, i.e. a terminal it was run from. There is much information elsewhere on how to run Python programs from the terminal.
+
+9. The program will offer to let you also copy the puzzle key to the clipboard (and print it to stdout). Make sure you paste the puzzle out first before clicking "Yes"!
+
+10. Include the word list, and you can close the generator program.
 
 You can use "Justify Center" and font size options to make things look pretty :) Remember, only the actual puzzle need use the monospaced font. Everything else can be anything you like.
 
