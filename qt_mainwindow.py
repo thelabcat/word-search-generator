@@ -1,15 +1,49 @@
 #!/usr/bin/env python3
-"""Word Search Generator main QT window
+"""Word Search Generator Qt GUI
+
+Present a GUI for the word search generator algorithm (Qt 6)
+
+This file is part of Word Search Generator.
+
+Word Search Generator is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <https://www.gnu.org/licenses/>.
 
 S.D.G."""
 
 import sys
 from PySide6.QtCore import Slot
-from PySide6.QtWidgets import QApplication, QWidget, QCheckBox, QLabel, QSpinBox, QHBoxLayout, QVBoxLayout, QPlainTextEdit, QPushButton
+from PySide6.QtWidgets import (
+    QApplication,
+    QWidget,
+    QCheckBox,
+    QLabel,
+    QSpinBox,
+    QHBoxLayout,
+    QVBoxLayout,
+    QPlainTextEdit,
+    QPushButton,
+    QMessageBox,
+    )
+
+from algorithm import (
+    Generator,
+    ALL_CHARS,
+    DIRECTIONS,
+    EASY_DIRECTIONS,
+    SIZE_FAC_DEFAULT,
+    )
 
 # Size factor options
 SIZE_FAC_RANGE = 1, 99
-SIZE_FAC_DEFAULT = 4
 
 
 class QtWindow(QWidget):
@@ -18,6 +52,7 @@ class QtWindow(QWidget):
     def __init__(self):
         """The Qt superwidget"""
         super().__init__()
+        self.clipboard = QApplication.clipboard()
         self.build()
 
     def build(self):
@@ -40,6 +75,7 @@ class QtWindow(QWidget):
 
         # The text area
         self.entry_w = QPlainTextEdit()
+        self.entry_w.appendPlainText("Delete this text, then enter one word per line.")
 
         # Finally, the generate button
         self.gen_button = QPushButton("Generate")
@@ -52,12 +88,20 @@ class QtWindow(QWidget):
         self.main_layout.addWidget(self.entry_w, stretch=1)
         self.main_layout.addWidget(self.gen_button)
 
-        self.setWindowTitle("Word Search Generator (stub)")
+        self.setWindowTitle("Word Search Generator")
 
     @property
     def use_hard(self):
         """Wether or not to use hard directions"""
         return self.use_hard_w.isChecked()
+
+    @property
+    def directions(self) -> list[tuple[int, int]]:
+        """Set up directions to use"""
+        if self.use_hard:
+            return DIRECTIONS
+
+        return EASY_DIRECTIONS
 
     @property
     def size_factor(self):
@@ -66,12 +110,77 @@ class QtWindow(QWidget):
 
     @Slot()
     def generate_puzzle(self):
-        """Generate the puzzle given the inputs"""
-        print(f"Size factor is {self.size_factor}")
-        print(f"Entered text: {self.entry_w.toPlainText()}")
+        """Generate a puzzle from the input words"""
+
+        words_raw = self.entry_w.toPlainText().strip().upper()  # Read the entry area for words
+
+        # Checkpoint against invalid characters
+        for letter in words_raw:
+            if letter not in ALL_CHARS and not letter.isspace():
+                words_raw = None
+                break
+
+        # Report and halt at any text problems
+        if not words_raw:
+            QMessageBox.critical(self, "Invalid text", "Enter one word per line with no punctuation.")
+            return
+
+        # Generate the puzzle
+        words = words_raw.split()
+        table = Generator.gen_word_search(words, directions=self.directions, size_fac=self.size_factor)
+
+        # Render the puzzle
+        text = Generator.render_puzzle(table)
+
+        # Copy the finished puzzle to the Tkinter/system clipboard
+        self.clipboard.setText(text)
+
+        # Patch for issue #1
+        print("--- Puzzle ---")
+        print(text)
+        print("--------------")
+
+        QMessageBox.information(
+            self,
+            "Generation complete",
+            "The puzzle was copied to the clipboard (and printed to " +
+            "stdout). Paste into a word processor set for a monospaced font " +
+            "BEFORE closing this program.",
+            )
+
+        # Offer to print the key
+        if QMessageBox.question(
+            self,
+            "Show key",
+            "Would you like to copy (and print) the answer key now (will " +
+            "replace the puzzle)?",
+                ) == QMessageBox.Yes:
+            keytext = Generator.render_puzzle(table, fill=False)
+
+            # Copy the finished puzzle key to the Tkinter/system clipboard
+            self.clipboard.setText(keytext)
+
+            # Patch for issue #1
+            print("- Answer Key -")
+            print(keytext)
+            print("--------------")
+
+            QMessageBox.information(
+                self,
+                "Key copied",
+                "The answer key was copied to the clipboard (and printed to " +
+                "stdout)."
+                )
 
 
-app = QApplication(sys.argv)
-window = QtWindow()
-window.show()
-app.exec()
+def main():
+    """Launch the GUI"""
+    app = QApplication(sys.argv)
+    window = QtWindow()
+    window.show()
+    app.exec()
+
+
+# If this was not imported, run it
+if __name__ == "__main__":
+    main()
