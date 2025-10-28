@@ -10,14 +10,16 @@ This program was written for and successfully run in python 3.13.
 This program also depends on the following Python libraries:
 - [NumPy](https://pypi.org/project/numpy/)
 
-You can find executables with Python and the dependencies bundled inside them in the Releases page of this repository.
+For the newer Qt GUI, you should also install [PySide6](https://pypi.org/project/pyside6/), but it is currently not required.
+
+You can find executables with bundled Python and dependencies in the Releases page of this repository.
 
 ## Installation and startup:
 
 To run from source:
-1. Download the word_search.pyw file somewhere. It will not output files when it runs, so your desktop is fine.
+1. Download the repository as a zip, or clone it.
 2. Download and install a version of Python 3, then use `pip` to install the dependencies. This can be expedited by downloading the `requirements.txt` file, then running `pip install -r requirements.txt` in the console.
-3. Double-click the word_search.pyw file.
+3. Double-click the word_search_generator.py file (or otherwise open it with the Python interpreter on your OS).
 
 To run from binary, download the appropriate binary for your OS from the Releases page, and double-click it.
 
@@ -25,9 +27,11 @@ Within a minute or so, a simple GUI with a text entry area should appear:
 
 - The checkbox enables the use of non-European word placing directions.
 
-- Size factor is the ratio of total puzzle letters to all letters that make up words. Cannot be less than 1. Defaults to 4, and the arrow buttons won't take you past 2-9, although you CAN enter numbers outside this range. The GUI will round down floating-point numbers. Entering 1 will make the most efficient puzzle possible, which will probably be ridiculously easy and is not recommended.
+- Size factor is the ratio of total puzzle letters to all letters that make up words. Cannot be less than 1. Defaults to 4. Entering 1 will make the most efficient puzzle possible, which will probably be ridiculously easy and is not recommended.
 
-- The entry area has an explanatory line of text inserted at startup :) Delete that explanatory text, then enter one word per line with no punctuation. Capitalization will be ignored when generating the puzzle.
+- The entry area has an explanatory line of text inserted at startup :) Delete that explanatory text, then enter one word per line with no punctuation. Capitalization will be ignored when generating the puzzle. Note: You technically don't have to enter one word per line as the program splits on _any_ whitespace and automatically strips trailing whitespace, but it will make your workflow potentially easier.
+
+For now, wether using the new Qt GUI or the legacy Tkinter GUI, the features are about the same. The size factor spinbox behaves slightly differently in Tkinter, though. Note: You can force the Tkinter GUI even if you have PySide6 and thus Qt support, using a command line option (see below).
 
 
 ## Workflow:
@@ -42,17 +46,40 @@ Within a minute or so, a simple GUI with a text entry area should appear:
 
 5. A notification box will tell you that the puzzle generation was successful. Note: Though starting with a size determined from size_fac, the algorithm automatically increases puzzle size if there was no way to fit all the words in.
 
-6. You can click OK, but DO NOT close the main program window, as this will erase what it copied to the system clipboard.
+6. You can click OK, but if using Tkinter or X11, do not close the main program window, as this will erase what it copied to the clipboard.
 
 7. Hop over to your word processor, and set the font to something monospaced (letters are all the same width). Examples: Consolas (I think), DejaVu Sans Mono, Freesans Mono, and any other fonts ending with "mono" are monospaced.
 
-8. Paste (Ctrl+V on most systems). Ta-da! NOTE: If pasting fails, see issue #1. Currently, my workaround for this is having the program print the puzzle to stdout, i.e. a terminal it was run from. There is much information elsewhere on how to run Python programs from the terminal.
+8. Paste (Ctrl+V on most systems). Ta-da! Note: If pasting fails, you are probably using X11 and/or the Tkinter GUI. Currently, my workaround for this on those systems is having the program print the puzzle to stdout, i.e. a terminal it was run from. There is much information elsewhere on how to run Python programs from the terminal. See [issue #1](https://github.com/thelabcat/word-search-generator/issues/1) for more information.
 
 9. The program will offer to let you also copy the puzzle key to the clipboard (and print it to stdout). Make sure you paste the puzzle out first before clicking "Yes"!
 
 10. Include the word list, and you can close the generator program.
 
 You can use "Justify Center" and font size options to make things look pretty :) Remember, only the actual puzzle need use the monospaced font. Everything else can be anything you like.
+
+## Command line options:
+This program also supports several CLI options, including running without the GUI entirely. The program will go into CLI mode if and only if the `words` option is specified.
+
+```
+usage: word_search_generator.py [-h] [-t] [-H] [-s SIZE_FACTOR] [-a] [-d] [words ...]
+
+Generate word search puzzles, CLI or GUI
+
+positional arguments:
+  words                 (CLI) Words to put into the puzzle, or '-' to accept stdin
+
+options:
+  -h, --help            show this help message and exit
+  -t, --tkinter         (GUI) Use the legacy Tkinter GUI instead of Qt
+  -H, --use-hard        (CLI) Use the harder, backwards (11-o'-clock) directions
+  -s, --size-factor SIZE_FACTOR
+                        (CLI) Set the starting factor of how many junk characters to fill characters to use (will increase as neccesary), defaults to 4
+  -a, --answers         (CLI) Also print the puzzle with no filler characters
+  -d, --no-decorate     (CLI) Don't print decoration lines around puzzle and key
+
+S.D.G.
+```
 
 ## Legal:
 
