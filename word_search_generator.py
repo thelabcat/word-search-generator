@@ -47,6 +47,7 @@ if __name__ == "__main__":
     parser.add_argument("-H", "--use-hard", action="store_true", help="(CLI) Use the harder, backwards (11-o'-clock) directions")
     parser.add_argument("-s", "--size-factor", type=int, help="(CLI) Set the starting size factor", default=SIZE_FAC_DEFAULT)
     parser.add_argument("-a", "--answers", action="store_true", help="(CLI) Also print the puzzle with no filler characters")
+    parser.add_argument("-d", "--no-decorate", action="store_true", help="(CLI) Don't print decoration lines around puzzle and key")
     parser.add_argument("words", nargs="*", type=str, help="(CLI) Words to put into the puzzle")
     args = parser.parse_args()
 
@@ -63,15 +64,24 @@ if __name__ == "__main__":
             )
 
         # Render the puzzle
-        print("--- Puzzle ---")
-        print(Generator.render_puzzle(table))
-        print("--------------")
+        puzz = Generator.render_puzzle(table)
+        if args.no_decorate:
+            print(puzz)
+        else:
+            print("--- Puzzle ---")
+            print(puzz)
+            print("--------------")
 
         # Optionally render the answer key
         if args.answers:
-            print("- Answer Key -")
-            print(Generator.render_puzzle(table, fill=False))
-            print("--------------")
+            puzzkey = Generator.render_puzzle(table, fill=False)
+            if args.no_decorate:
+                # Put one blank line between puzzle and key
+                print(f"\n{puzzkey}")
+            else:
+                print("- Answer Key -")
+                print(puzzkey)
+                print("--------------")
 
     # We are GUI
     elif args.tkinter or not HAVE_QT:
