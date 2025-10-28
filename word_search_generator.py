@@ -25,7 +25,15 @@ from algorithm import (
     EASY_DIRECTIONS,
     SIZE_FAC_DEFAULT,
     )
-from qt_mainwindow import main as qtmain
+
+try:
+    from qt_mainwindow import main as qtmain
+    HAVE_QT = True
+except ImportError as e:
+    print("Could not import the Qt GUI module:")
+    print(e)
+    HAVE_QT = False
+
 from tk_mainwindow import main as tkmain
 
 # If this program was launched directly, run it
@@ -55,20 +63,18 @@ if __name__ == "__main__":
             )
 
         # Render the puzzle
-        text = Generator.render_puzzle(table)
         print("--- Puzzle ---")
-        print(text)
+        print(Generator.render_puzzle(table))
         print("--------------")
 
         # Optionally render the answer key
         if args.answers:
-            keytext = Generator.render_puzzle(table, fill=False)
             print("- Answer Key -")
-            print(keytext)
+            print(Generator.render_puzzle(table, fill=False))
             print("--------------")
 
     # We are GUI
-    elif args.tkinter:
+    elif args.tkinter or not HAVE_QT:
         print("Using legacy Tkinter GUI")
         tkmain()
 
