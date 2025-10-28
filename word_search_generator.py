@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with
 this program. If not, see <https://www.gnu.org/licenses/>."""
 
 import argparse
+import sys
 from algorithm import (
     Generator,
     ALL_CHARS,
@@ -48,17 +49,23 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--size-factor", type=int, help="(CLI) Set the starting size factor", default=SIZE_FAC_DEFAULT)
     parser.add_argument("-a", "--answers", action="store_true", help="(CLI) Also print the puzzle with no filler characters")
     parser.add_argument("-d", "--no-decorate", action="store_true", help="(CLI) Don't print decoration lines around puzzle and key")
-    parser.add_argument("words", nargs="*", type=str, help="(CLI) Words to put into the puzzle")
+    parser.add_argument("words", nargs="*", type=str, help="(CLI) Words to put into the puzzle, or '-' to accept stdin")
     args = parser.parse_args()
 
     # We are CLI
     if args.words:
+        # Allow for std piping
+        if args.words == ["-"]:
+            words = sys.stdin.read().strip().upper().split()
+        else:
+            words = [word.upper() for word in args.words]
+
         # Checkpoint for valid word entries
-        for char in "".join(args.words).upper():
+        for char in "".join(words):
             assert char in ALL_CHARS, "Invalid characters detected in input"
 
         table = Generator.gen_word_search(
-            [word.upper() for word in args.words],
+            words,
             directions=DIRECTIONS if args.use_hard else EASY_DIRECTIONS,
             size_fac=args.size_factor,
             )
