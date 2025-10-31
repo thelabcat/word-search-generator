@@ -81,7 +81,7 @@ class Generator:
     @staticmethod
     def create_empty_table(dim: int):
         """
-        Create the empty 2D table to build the puzzle. referenced by table[y][x]=" "
+        Create the empty 2D table to build the puzzle.
 
         Args:
             dim (int): The size of the puzzle.
