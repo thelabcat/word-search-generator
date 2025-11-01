@@ -44,19 +44,29 @@ For now, wether using the new Qt GUI or the legacy Tkinter GUI, the features are
 
 4. Click generate, then wait. The program may "freeze" for several seconds, but should not disappear (a crash).
 
-5. A notification box will tell you that the puzzle generation was successful. Note: Though starting with a size determined from size_fac, the algorithm automatically increases puzzle size if there was no way to fit all the words in.
+5. A notification box will tell you that the puzzle generation was successful.
 
 6. You can click OK, but if using Tkinter or X11, do not close the main program window, as this will erase what it copied to the clipboard.
 
 7. Hop over to your word processor, and set the font to something monospaced (letters are all the same width). Examples: Consolas (I think), DejaVu Sans Mono, Freesans Mono, and any other fonts ending with "mono" are monospaced.
 
-8. Paste (Ctrl+V on most systems). Ta-da! Note: If pasting fails, you are probably using X11 and/or the Tkinter GUI. Currently, my workaround for this on those systems is having the program print the puzzle to stdout, i.e. a terminal it was run from. There is much information elsewhere on how to run Python programs from the terminal. See [issue #1](https://github.com/thelabcat/word-search-generator/issues/1) for more information.
+8. Paste (Ctrl+V on most systems). Ta-da!
 
 9. The program will offer to let you also copy the puzzle key to the clipboard (and print it to stdout). Make sure you paste the puzzle out first before clicking "Yes"!
 
 10. Include the word list, and you can close the generator program.
 
 You can use "Justify Center" and font size options to make things look pretty :) Remember, only the actual puzzle need use the monospaced font. Everything else can be anything you like.
+
+## Troubleshooting
+### The puzzle does not actually copy to the clipboard, so pasting fails
+You are probably using the Tkinter GUI on Wayland. Currently, my workaround for this on those systems is having the program print the puzzle to stdout, i.e. a terminal it was run from. There is much information elsewhere on how to run Python programs from the terminal. See [issue #1](https://github.com/thelabcat/word-search-generator/issues/1) for more information.
+
+### Application fails to launch, and launching from CLI gives message about missing Qt plugin
+You are probably using X11. See [issue #11](https://github.com/thelabcat/word-search-generator/issues/11) for more information, but the gist is it seems like Qt does not support X11 anymore. You can force the app to use TkInter instead with the `--tkinter` command line option.
+
+### Size factor is not respected, allowing puzzle to be bigger than specified
+This is intended behavior. Though it starts with a puzzle size determined from the size factor entered, the algorithm automatically increases the puzzle size if there was no way to fit all the words in.
 
 ## Command line options:
 This program also supports several CLI options, including running without the GUI entirely. The program will go into CLI mode if and only if the `words` option is specified.
