@@ -250,6 +250,9 @@ class Generator:
             table (np.array): The completed puzzle.
         """
 
+        # Remove all duplicate words
+        words = list(set(words))
+
         dim = Generator.get_puzzle_dim(words, size_fac)  # Generate puzzle dimension
         table = Generator.create_empty_table(dim)
         all_workable_posits = {}  # Dict of word: list[Position]
