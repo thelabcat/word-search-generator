@@ -29,6 +29,8 @@ from algorithm import (
     DIRECTIONS,
     EASY_DIRECTIONS,
     SIZE_FAC_DEFAULT,
+    INTERSECT_BIASES,
+    INTERSECT_BIAS_DEFAULT,
     )
 
 
@@ -50,7 +52,10 @@ class TkWindow(tk.Tk):
             "write",
             lambda *args: self.verify_size_fac()
             )
-        self.intersect_bias = tk.IntVar(self, 0)
+        self.intersect_bias = tk.IntVar(
+            self,
+            INTERSECT_BIASES[INTERSECT_BIAS_DEFAULT]
+            )
 
         self.build()
         self.mainloop()
@@ -69,7 +74,11 @@ class TkWindow(tk.Tk):
         self.sf_frame = ttk.Frame(self)
         self.sf_frame.grid(row=1, sticky=tk.EW)
 
-        ttk.Label(self.sf_frame, text="Size factor:", anchor=tk.E).grid(row=0, column=0, sticky=tk.NSEW)
+        ttk.Label(
+            self.sf_frame,
+            text="Size factor:",
+            anchor=tk.E,
+            ).grid(row=0, column=0, sticky=tk.NSEW)
 
         self.sf_spinbox = ttk.Spinbox(
             self.sf_frame,
@@ -88,12 +97,13 @@ class TkWindow(tk.Tk):
             .grid(row=0, column=0, columnspan=3, sticky=tk.NSEW)
 
         # Create radiobuttons for the three biases
-        for i, bias in enumerate(("Avoid", "Random", "Prefer")):
+        for i, bias_pair in enumerate(INTERSECT_BIASES.items()):
+            bias_name, bias_value = bias_pair
             ttk.Radiobutton(
                 self.bias_frame,
-                text=bias,
+                text=bias_name,
                 variable=self.intersect_bias,
-                value=i - 1
+                value=bias_value
                 ).grid(row=1, column=i, sticky=tk.NSEW, padx=7)
 
         # Entry area for the words, and a scrollbar

@@ -41,14 +41,12 @@ from algorithm import (
     DIRECTIONS,
     EASY_DIRECTIONS,
     SIZE_FAC_DEFAULT,
+    INTERSECT_BIASES,
+    INTERSECT_BIAS_DEFAULT,
     )
 
 # Size factor options
 SIZE_FAC_RANGE = 1, 99
-
-# Intersection biases
-INTERSECT_BIASES = {"Avoid": -1, "Random": 0, "Prefer": 1}
-INTERSECT_BIAS_DEFAULT = "Random"
 
 
 class QtWindow(QWidget):
@@ -141,7 +139,8 @@ class QtWindow(QWidget):
     def generate_puzzle(self):
         """Generate a puzzle from the input words"""
 
-        words_raw = self.entry_w.toPlainText().strip().upper()  # Read the entry area for words
+        # Read the entry area for words
+        words_raw = self.entry_w.toPlainText().strip().upper()
 
         # Checkpoint against invalid characters
         for letter in words_raw:
@@ -151,12 +150,21 @@ class QtWindow(QWidget):
 
         # Report and halt at any text problems
         if not words_raw:
-            QMessageBox.critical(self, "Invalid text", "Enter one word per line with no punctuation.")
+            QMessageBox.critical(
+                self,
+                "Invalid text",
+                "Enter one word per line with no punctuation."
+                )
             return
 
         # Generate the puzzle
         words = words_raw.split()
-        table = Generator.gen_word_search(words, directions=self.directions, size_fac=self.size_factor, intersect_bias = self.intersect_bias)
+        table = Generator.gen_word_search(
+            words,
+            directions=self.directions,
+            size_fac=self.size_factor,
+            intersect_bias=self.intersect_bias
+            )
 
         # Render the puzzle
         text = Generator.render_puzzle(table)
