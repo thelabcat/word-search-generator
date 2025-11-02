@@ -64,6 +64,7 @@ class QtWindow(QWidget):
 
         # Wether or not to use hard directions
         self.use_hard_w = QCheckBox("Use backwards directions")
+        self.use_hard_w.setChecked(True)
 
         # The size factor control
         self.sf_spinbox = QSpinBox()

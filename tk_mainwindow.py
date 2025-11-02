@@ -35,6 +35,7 @@ from algorithm import (
 
 
 TK_SIZE_FAC_OPTIONS = tuple(range(2, 10))
+PAD = 10  # Widget padding
 
 
 class TkWindow(tk.Tk):
@@ -68,15 +69,15 @@ class TkWindow(tk.Tk):
             self,
             text="Use backwards directions",
             variable=self.use_hard
-            ).grid(row=0, sticky=tk.NSEW)
+            ).grid(row=0, sticky=tk.NSEW, padx=PAD, pady=(PAD, 0))
 
         # Number area for size_fac
         self.sf_frame = ttk.Frame(self)
-        self.sf_frame.grid(row=1, sticky=tk.EW)
+        self.sf_frame.grid(row=1, sticky=tk.NSEW, padx=PAD, pady=(PAD, 0))
 
         ttk.Label(
             self.sf_frame,
-            text="Size factor:",
+            text="Size factor: ",
             anchor=tk.E,
             ).grid(row=0, column=0, sticky=tk.NSEW)
 
@@ -92,9 +93,9 @@ class TkWindow(tk.Tk):
 
         # Intersection bias chooser
         self.bias_frame = ttk.Frame(self)
-        self.bias_frame.grid(row=2, sticky=tk.NSEW, pady=3)
+        self.bias_frame.grid(row=2, sticky=tk.NSEW, padx=PAD//2, pady=(PAD, 0))
         ttk.Label(self.bias_frame, text="Word intersections bias:")\
-            .grid(row=0, column=0, columnspan=3, sticky=tk.NSEW)
+            .grid(row=0, column=0, columnspan=3, sticky=tk.NSEW, padx=PAD//2)
 
         # Create radiobuttons for the three biases
         for i, bias_pair in enumerate(INTERSECT_BIASES.items()):
@@ -104,12 +105,13 @@ class TkWindow(tk.Tk):
                 text=bias_name.capitalize(),
                 variable=self.intersect_bias,
                 value=bias_value
-                ).grid(row=1, column=i, sticky=tk.NSEW, padx=7)
+                ).grid(row=1, column=i, sticky=tk.NSEW,
+                       padx=PAD//2, pady=PAD//2)
             self.bias_frame.columnconfigure(i, weight=1)
 
         # Entry area for the words, and a scrollbar
         self.entry_frame = ttk.Frame(self)
-        self.entry_frame.grid(row=3, sticky=tk.NSEW)
+        self.entry_frame.grid(row=3, sticky=tk.NSEW, padx=PAD)
         self.text = tk.Text(self.entry_frame, width=30, height=10, wrap="word")
         self.scrollbar = ttk.Scrollbar(self.entry_frame)
 
@@ -133,7 +135,7 @@ class TkWindow(tk.Tk):
 
         # Go button
         ttk.Button(self, text="Generate", command=self.generate_puzzle)\
-            .grid(row=4, sticky=tk.NSEW)
+            .grid(row=4, sticky=tk.NSEW, padx=PAD, pady=(PAD//2, PAD))
 
         # Resize horizontally
         self.columnconfigure(0, weight=1)
