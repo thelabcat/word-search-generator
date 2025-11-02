@@ -55,16 +55,16 @@ class TkWindow(tk.Tk):
         """Construct the GUI widgets"""
 
         # Checkbutton for using hard directions
-        ttk.Checkbutton(self, text="Use backwards directions", variable=self.use_hard).grid(row=0, sticky=tk.N + tk.EW)
+        ttk.Checkbutton(self, text="Use backwards directions", variable=self.use_hard).grid(row=0, sticky=tk.NSEW)
 
         # Number area for size_fac
         self.sf_frame = ttk.Frame(self)
         self.sf_frame.grid(row=1, sticky=tk.EW)
 
-        ttk.Label(self.sf_frame, text="Size factor:").grid(row=0, column=0, sticky=tk.E + tk.N)
+        ttk.Label(self.sf_frame, text="Size factor:", anchor=tk.E).grid(row=0, column=0, sticky=tk.NSEW)
 
         self.sf_spinbox = ttk.Spinbox(self.sf_frame, values=TK_SIZE_FAC_OPTIONS, textvariable=self.size_fac_str)
-        self.sf_spinbox.grid(row=0, column=1, sticky=tk.N + tk.EW)
+        self.sf_spinbox.grid(row=0, column=1, sticky=tk.NSEW)
 
         self.sf_frame.columnconfigure(1, weight=1)  # Resize size factor frame around the column with the spinbox.
 
@@ -77,7 +77,7 @@ class TkWindow(tk.Tk):
         self.scrollbar["command"] = self.text.yview  # Connect scrollbar to text
         self.text.configure(yscrollcommand=self.scrollbar.set)  # Connect text to scrollbar
 
-        self.scrollbar.grid(row=0, column=1, sticky=tk.NS + tk.E)
+        self.scrollbar.grid(row=0, column=1, sticky=tk.NSEW)
         self.text.grid(row=0, column=0, sticky=tk.NSEW)
         self.text.insert(0.0, "Delete this text, then enter one word per line.")
 
@@ -86,7 +86,7 @@ class TkWindow(tk.Tk):
         self.entry_frame.columnconfigure(0, weight=1)
 
         # Go button
-        ttk.Button(self, text="Generate", command=self.generate_puzzle).grid(row=3, sticky=tk.S + tk.EW)
+        ttk.Button(self, text="Generate", command=self.generate_puzzle).grid(row=3, sticky=tk.NSEW)
 
         # Resize GUI about entry frame
         self.rowconfigure(2, weight=1)
