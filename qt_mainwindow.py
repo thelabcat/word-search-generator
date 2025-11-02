@@ -82,7 +82,7 @@ class QtWindow(QWidget):
 
         self.bias_ops_layout = QHBoxLayout()
         for bias_name, bias_value in INTERSECT_BIASES.items():
-            widget = QRadioButton(bias_name)
+            widget = QRadioButton(bias_name.capitalize())
             widget.bias_value = bias_value
             widget.toggled.connect(self.set_bias)
             if bias_name == INTERSECT_BIAS_DEFAULT:

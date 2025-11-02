@@ -101,7 +101,7 @@ class TkWindow(tk.Tk):
             bias_name, bias_value = bias_pair
             ttk.Radiobutton(
                 self.bias_frame,
-                text=bias_name,
+                text=bias_name.capitalize(),
                 variable=self.intersect_bias,
                 value=bias_value
                 ).grid(row=1, column=i, sticky=tk.NSEW, padx=7)
