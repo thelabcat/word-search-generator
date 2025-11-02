@@ -261,7 +261,7 @@ class Generator:
         table = Generator.create_empty_table(dim)
         all_workable_posits = {}  # Dict of word: list[Position]
         all_positions = Generator.all_posits(dim, directions)
-        table_history = []  # History of table status
+        table_history = []  # History of table status, before each word was placed
 
         # Continue until we get through all of the words
         index = 0
@@ -289,9 +289,11 @@ class Generator:
                     if intersect_bias > 0:
                         cur_workable_posits.reverse()
 
+                # Save calculated possible positions, so future word can
+                # eliminate them upon placement failure
                 all_workable_posits[word] = cur_workable_posits
 
-            # The placements failed after this word
+            # This word has no workable positions that don't hurt future words
             if not cur_workable_posits:
                 # Remove the now empty workable positions from the tree
                 del all_workable_posits[word]
@@ -309,7 +311,8 @@ class Generator:
                     table_history = []
                     index = 0
 
-                # Reset to previous table state, and remove previous word's first tried position
+                # Reset to table state before the previous word was placed,
+                # and remove the previous word's first tried position
                 else:
                     table = table_history[index]
                     table_history.pop(index)
@@ -317,8 +320,12 @@ class Generator:
 
             # We have positions we can try
             else:
-                table[cur_workable_posits[0].indices(len(word))] = np.array(list(word), dtype=str)
-                table_history.append(table)
+                # Save the table state before the word was added
+                table_history.append(table.copy())
+
+                # Try the first position
+                table[cur_workable_posits[0].indices(len(word))] = \
+                    np.array(list(word), dtype=str)
                 index += 1
 
         # Swap the X and Y axes for display
