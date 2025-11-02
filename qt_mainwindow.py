@@ -27,6 +27,7 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QLabel,
     QSpinBox,
+    QRadioButton,
     QHBoxLayout,
     QVBoxLayout,
     QPlainTextEdit,
@@ -45,6 +46,10 @@ from algorithm import (
 # Size factor options
 SIZE_FAC_RANGE = 1, 99
 
+# Intersection biases
+INTERSECT_BIASES = {"Avoid": -1, "Random": 0, "Prefer": 1}
+INTERSECT_BIAS_DEFAULT = "Random"
+
 
 class QtWindow(QWidget):
     """The Qt superwidget"""
@@ -53,6 +58,7 @@ class QtWindow(QWidget):
         """The Qt superwidget"""
         super().__init__()
         self.clipboard = QApplication.clipboard()
+        self.intersect_bias = INTERSECT_BIASES[INTERSECT_BIAS_DEFAULT]
         self.build()
 
     def build(self):
@@ -73,6 +79,22 @@ class QtWindow(QWidget):
         self.sf_layout.addWidget(self.sf_label)
         self.sf_layout.addWidget(self.sf_spinbox, stretch=1)
 
+        # The intersection bias choosing
+        self.bias_label = QLabel("Word intersections bias:")
+
+        self.bias_ops_layout = QHBoxLayout()
+        for bias_name, bias_value in INTERSECT_BIASES.items():
+            widget = QRadioButton(bias_name)
+            widget.bias_value = bias_value
+            widget.toggled.connect(self.set_bias)
+            if bias_name == INTERSECT_BIAS_DEFAULT:
+                widget.setChecked(True)
+            self.bias_ops_layout.addWidget(widget)
+
+        self.bias_layout = QVBoxLayout()
+        self.bias_layout.addWidget(self.bias_label)
+        self.bias_layout.addLayout(self.bias_ops_layout)
+
         # The text area
         self.entry_w = QPlainTextEdit()
         self.entry_w.appendPlainText("Delete this text, then enter one word per line.")
@@ -85,10 +107,17 @@ class QtWindow(QWidget):
         self.main_layout = QVBoxLayout(self)
         self.main_layout.addWidget(self.use_hard_w)
         self.main_layout.addLayout(self.sf_layout)
+        self.main_layout.addLayout(self.bias_layout)
         self.main_layout.addWidget(self.entry_w, stretch=1)
         self.main_layout.addWidget(self.gen_button)
 
         self.setWindowTitle("Word Search Generator")
+
+    def set_bias(self):
+        """Set the current bias from the radiobuttons"""
+        radiobutton = self.sender()
+        if radiobutton.isChecked:
+            self.intersect_bias = self.sender().bias_value
 
     @property
     def use_hard(self):
@@ -127,7 +156,7 @@ class QtWindow(QWidget):
 
         # Generate the puzzle
         words = words_raw.split()
-        table = Generator.gen_word_search(words, directions=self.directions, size_fac=self.size_factor)
+        table = Generator.gen_word_search(words, directions=self.directions, size_fac=self.size_factor, intersect_bias = self.intersect_bias)
 
         # Render the puzzle
         text = Generator.render_puzzle(table)
