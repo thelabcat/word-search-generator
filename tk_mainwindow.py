@@ -105,6 +105,7 @@ class TkWindow(tk.Tk):
                 variable=self.intersect_bias,
                 value=bias_value
                 ).grid(row=1, column=i, sticky=tk.NSEW, padx=7)
+            self.bias_frame.columnconfigure(i, weight=1)
 
         # Entry area for the words, and a scrollbar
         self.entry_frame = ttk.Frame(self)
@@ -127,12 +128,14 @@ class TkWindow(tk.Tk):
         self.entry_frame.rowconfigure(0, weight=1)
         self.entry_frame.columnconfigure(0, weight=1)
 
+        # Resize the GUI about the entry frame
+        self.rowconfigure(3, weight=1)
+
         # Go button
         ttk.Button(self, text="Generate", command=self.generate_puzzle)\
             .grid(row=4, sticky=tk.NSEW)
 
-        # Resize GUI about entry frame
-        self.rowconfigure(2, weight=1)
+        # Resize horizontally
         self.columnconfigure(0, weight=1)
 
     @property
