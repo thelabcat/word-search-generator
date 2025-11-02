@@ -19,8 +19,8 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 
 S.D.G."""
 
-from tkinter import *
-from tkinter.ttk import *
+import tkinter as tk
+from tkinter import ttk
 from tkinter import messagebox as mb
 
 from algorithm import (
@@ -35,7 +35,7 @@ from algorithm import (
 TK_SIZE_FAC_OPTIONS = tuple(range(2, 10))
 
 
-class TkWindow(Tk):
+class TkWindow(tk.Tk):
     """Word Search Generator GUI"""
 
     def __init__(self):
@@ -44,8 +44,8 @@ class TkWindow(Tk):
         self.title("Word Search Gen")
 
         # Tkinter variables
-        self.use_hard = BooleanVar(self, True)
-        self.size_fac_str = StringVar(self, SIZE_FAC_DEFAULT)
+        self.use_hard = tk.BooleanVar(self, True)
+        self.size_fac_str = tk.StringVar(self, SIZE_FAC_DEFAULT)
         self.size_fac_str.trace_add("write", lambda *args: self.verify_size_fac())
 
         self.build()
@@ -55,30 +55,30 @@ class TkWindow(Tk):
         """Construct the GUI widgets"""
 
         # Checkbutton for using hard directions
-        Checkbutton(self, text="Use backwards directions", variable=self.use_hard).grid(row=0, sticky=N+E+W)
+        ttk.Checkbutton(self, text="Use backwards directions", variable=self.use_hard).grid(row=0, sticky=tk.N + tk.EW)
 
         # Number area for size_fac
-        self.sf_frame = Frame(self)
-        self.sf_frame.grid(row=1, sticky = EW)
+        self.sf_frame = ttk.Frame(self)
+        self.sf_frame.grid(row=1, sticky=tk.EW)
 
-        Label(self.sf_frame, text = "Size factor:").grid(row=0, column=0, sticky=E + N)
+        ttk.Label(self.sf_frame, text="Size factor:").grid(row=0, column=0, sticky=tk.E + tk.N)
 
-        self.sf_spinbox = Spinbox(self.sf_frame, values=TK_SIZE_FAC_OPTIONS, textvariable=self.size_fac_str)
-        self.sf_spinbox.grid(row=0, column=1, sticky=N + EW)
+        self.sf_spinbox = ttk.Spinbox(self.sf_frame, values=TK_SIZE_FAC_OPTIONS, textvariable=self.size_fac_str)
+        self.sf_spinbox.grid(row=0, column=1, sticky=tk.N + tk.EW)
 
         self.sf_frame.columnconfigure(1, weight=1)  # Resize size factor frame around the column with the spinbox.
 
         # Entry area for the words, and a scrollbar
-        self.entry_frame = Frame(self)
-        self.entry_frame.grid(row=2, sticky=NSEW)
-        self.text = Text(self.entry_frame, width=30, height=10, wrap="word")
-        self.scrollbar = Scrollbar(self.entry_frame)
+        self.entry_frame = ttk.Frame(self)
+        self.entry_frame.grid(row=2, sticky=tk.NSEW)
+        self.text = tk.Text(self.entry_frame, width=30, height=10, wrap="word")
+        self.scrollbar = ttk.Scrollbar(self.entry_frame)
 
         self.scrollbar["command"] = self.text.yview  # Connect scrollbar to text
         self.text.configure(yscrollcommand=self.scrollbar.set)  # Connect text to scrollbar
 
-        self.scrollbar.grid(row=0, column=1, sticky = NS + E)
-        self.text.grid(row=0, column=0, sticky=N+S+E+W)
+        self.scrollbar.grid(row=0, column=1, sticky=tk.NS + tk.E)
+        self.text.grid(row=0, column=0, sticky=tk.NSEW)
         self.text.insert(0.0, "Delete this text, then enter one word per line.")
 
         # Resize the entry frame around the text box
@@ -86,7 +86,7 @@ class TkWindow(Tk):
         self.entry_frame.columnconfigure(0, weight=1)
 
         # Go button
-        Button(self, text="Generate", command=self.generate_puzzle).grid(row=3, sticky=S + EW)
+        ttk.Button(self, text="Generate", command=self.generate_puzzle).grid(row=3, sticky=tk.S + tk.EW)
 
         # Resize GUI about entry frame
         self.rowconfigure(2, weight=1)
@@ -124,7 +124,7 @@ class TkWindow(Tk):
     def generate_puzzle(self):
         """Generate a puzzle from the input words"""
 
-        words_raw = self.text.get(0.0, END).strip().upper()  # Read the entry area for words
+        words_raw = self.text.get(0.0, tk.END).strip().upper()  # Read the entry area for words
 
         # Checkpoint against invalid characters
         for letter in words_raw:
