@@ -53,7 +53,7 @@ pip install -U setuptools pyinstaller
 
 echo "Building exe"
 # --icon=$progname.ico --add-data $progname.png:.
-pyinstaller -F --name "$output_name" $progname.py 2>&1 | tee pyinstaller_build_log.txt
+pyinstaller -F --name "$output_name" $progname.pyw 2>&1 | tee pyinstaller_build_log.txt
 
 echo "Cleaning up exe build residue"
 rm -rf build
