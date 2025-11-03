@@ -100,7 +100,7 @@ class GUICommon:
         raise NotImplementedError
 
     @property
-    def current_words(self):
+    def current_words(self) -> str:
         """The currently entered words"""
         return self.words_entry_raw.strip().upper().split()
 
@@ -132,7 +132,7 @@ class GUICommon:
         lines = text.split()
 
         # If we were on a new word, put in the new line
-        if text[-1].isspace():
+        if text[-1].isspace() or "\n\n" in text:
             lines.append("")
 
         # If no changes were made, don't write them (prevents recursion)
