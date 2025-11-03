@@ -32,19 +32,20 @@ from algorithm import (
     INTERSECT_BIASES,
     INTERSECT_BIAS_DEFAULT,
     )
-
+from gui_common import GUICommon
 
 TK_SIZE_FAC_OPTIONS = tuple(range(2, 10))
 PAD = 10  # Widget padding
 
 
-class TkWindow(tk.Tk):
+class TkWindow(tk.Tk, GUICommon):
     """Word Search Generator GUI"""
 
     def __init__(self):
         """Word Search Generator GUI"""
-        super().__init__()
-        self.title("Word Search Gen")
+        tk.Tk.__init__(self)
+        GUICommon.__init__(self)
+        self.title(GUICommon.Lang.window_title)
 
         # Tkinter variables
         self.use_hard = tk.BooleanVar(self, True)
@@ -67,7 +68,7 @@ class TkWindow(tk.Tk):
         # Checkbutton for using hard directions
         ttk.Checkbutton(
             self,
-            text="Use backwards directions",
+            text=GUICommon.Lang.use_hard,
             variable=self.use_hard
             ).grid(row=0, sticky=tk.NSEW, padx=PAD, pady=(PAD, 0))
 
@@ -77,7 +78,7 @@ class TkWindow(tk.Tk):
 
         ttk.Label(
             self.sf_frame,
-            text="Size factor: ",
+            text=GUICommon.Lang.size_factor + " ",
             anchor=tk.E,
             ).grid(row=0, column=0, sticky=tk.NSEW)
 
@@ -94,7 +95,7 @@ class TkWindow(tk.Tk):
         # Intersection bias chooser
         self.bias_frame = ttk.Frame(self)
         self.bias_frame.grid(row=2, sticky=tk.NSEW, padx=PAD//2, pady=(PAD, 0))
-        ttk.Label(self.bias_frame, text="Word intersections bias:")\
+        ttk.Label(self.bias_frame, text=GUICommon.Lang.word_intersect_bias)\
             .grid(row=0, column=0, columnspan=3, sticky=tk.NSEW, padx=PAD//2)
 
         # Create radiobuttons for the three biases
@@ -113,6 +114,10 @@ class TkWindow(tk.Tk):
         self.entry_frame = ttk.Frame(self)
         self.entry_frame.grid(row=3, sticky=tk.NSEW, padx=PAD)
         self.text = tk.Text(self.entry_frame, width=30, height=10, wrap="word")
+        self.def_field.bind(
+            "<KeyRelease>",
+            lambda _: self.on_input_text_changed(),
+            )
         self.scrollbar = ttk.Scrollbar(self.entry_frame)
 
         # Connect scrollbar to text area
@@ -123,7 +128,7 @@ class TkWindow(tk.Tk):
         self.text.grid(row=0, column=0, sticky=tk.NSEW)
         self.text.insert(
             0.0,
-            "Delete this text, then enter one word per line."
+            GUICommon.Lang.word_entry_default,
             )
 
         # Resize the entry frame around the text box
@@ -133,9 +138,13 @@ class TkWindow(tk.Tk):
         # Resize the GUI about the entry frame
         self.rowconfigure(3, weight=1)
 
+        # The result buttons
+        #TODO
+
         # Go button
-        ttk.Button(self, text="Generate", command=self.generate_puzzle)\
-            .grid(row=4, sticky=tk.NSEW, padx=PAD, pady=(PAD//2, PAD))
+        self.gen_button = ttk.Button(self, text=GUICommon.Lang.gen_button, command=self.generate_puzzle)\
+            .grid(row=5, sticky=tk.NSEW, padx=PAD, pady=(PAD//2, PAD))
+        self.regulate_gen_button()
 
         # Resize horizontally
         self.columnconfigure(0, weight=1)
