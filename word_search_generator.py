@@ -20,6 +20,7 @@ this program. If not, see <https://www.gnu.org/licenses/>."""
 import argparse
 import os
 import sys
+from warnings import warn
 from algorithm import (
     Generator,
     ALL_CHARS,
@@ -34,8 +35,7 @@ try:
     from qt_mainwindow import main as qtmain
     HAVE_QT = True
 except ImportError as e:
-    print("Could not import the Qt GUI module:")
-    print(e)
+    warn(f"Could not import the Qt GUI module: {e}")
     HAVE_QT = False
 
 from tk_mainwindow import main as tkmain
