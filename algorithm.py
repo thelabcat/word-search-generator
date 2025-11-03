@@ -45,8 +45,76 @@ EASY_DIRECTIONS = DIRECTIONS[:4]  # Easy mode directions
 # are actually words
 SIZE_FAC_DEFAULT = 4
 
+# Intersection biases
+INTERSECT_BIASES = {"avoid": -1, "random": 0, "prefer": 1}
+INTERSECT_BIAS_DEFAULT = "random"
+
 # Filling characters and limiter for input words (modify this to allow for punctuation)
 ALL_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+
+class Position:
+    """Potential position for a word"""
+
+    def __init__(self, x: int, y: int, direction: tuple[int, int]):
+        """
+        Potential position for a word
+
+        Args:
+            x (int): The X coordinate of the word start.
+            y (int): The Y coordinate of the word start.
+            direction (tuple[int, int]): The word direction.
+        """
+        assert x >= 0 and y >= 0, "Coordinates cannot be less than zero."
+        self.x = x
+        self.y = y
+        self.direction = direction
+        self.dx, self.dy = direction
+
+    def bounds_check(self, length: int, puzz_dim: int) -> bool:
+        """
+        Check if a word will fit at this position
+
+        Args:
+            length (int): The length of the word.
+            puzz_dim (int): The size of the puzzle.
+
+        Returns:
+            result (bool): Can the word fit?
+        """
+
+        # Calculate where the end of the word would be
+        xend = self.x + self.dx * (length - 1)
+        yend = self.y + self.dy * (length - 1)
+
+        return (0 <= xend < puzz_dim) and (0 <= yend < puzz_dim)
+
+    def indices(self, length: int) -> tuple[np.array, np.array]:
+        """
+        Get the indices to place a word at this position
+
+        Args:
+            length (int): The length of the word.
+
+        Returns:
+            indices (tuple[np.array, np.array]): The X and Y coordinates, respectively.
+        """
+
+        if self.dx:
+            # Travel in the direction of delta X, starting at our position
+            xarray = np.array(range(self.x, self.x + self.dx * length, self.dx))
+        else:
+            # X does not change
+            xarray = np.array([self.x] * length)
+
+        if self.dy:
+            # Travel in the direction of delta Y, starting at our position
+            yarray = np.array(range(self.y, self.y + self.dy * length, self.dy))
+        else:
+            # Y does not change
+            yarray = np.array([self.y] * length)
+
+        return xarray, yarray
 
 
 class Generator:
@@ -55,6 +123,38 @@ class Generator:
     # Things to fill the NumPy array
     fill_with_random = np.vectorize(lambda spot: spot if spot else random.choice(ALL_CHARS))
     fill_with_space = np.vectorize(lambda spot: spot if spot else " ")
+
+    def __init__(self, progress_step: callable = None):
+        """Generate a word search puzzle
+
+        Args:
+            progress_step (callable): Will call this method for every word placed.
+                Defaults to None
+        """
+
+        self.__progress_step = progress_step
+
+        self.words = None
+        self.dim = 1
+        self.directions = ()
+        self.intersect_bias = 0
+        self.reset_generation_data()
+
+        # For killing the loop mid-generation
+        self.halted = True
+
+    def progress_step(self):
+        """Report our progress if we were passed a callable for such"""
+        if callable(self.__progress_step):
+            self.__progress_step()
+
+    def reset_generation_data(self):
+        """Create starter generation data with self.dim"""
+        self.table = Generator.create_empty_table(self.dim)
+        self.all_workable_posits = {}
+        self.all_positions = Generator.all_posits(self.dim, self.directions)
+        self.table_history = []
+        self.index = 0
 
     @staticmethod
     def get_puzzle_dim(words: list[str], size_fac: int):
@@ -98,146 +198,185 @@ class Generator:
         return np.empty((dim, dim), dtype=str)
 
     @staticmethod
-    def create_blank_tried_pos(words: list[str]) -> dict[str: list]:
+    def all_posits(
+            dim: int,
+            directions: Sequence[tuple[int, int]] = DIRECTIONS
+            ) -> tuple[Position]:
         """
-        Create a new tried positions dictionary
-
-        Args:
-            words (list[str]): The words to put in the puzzle.
-
-        Returns:
-            tried_positions (dict[str: list]): Empty ledger for tried positions.
-        """
-        return {word: [] for word in words}
-
-    @staticmethod
-    def all_random_coords(dim: int) -> tuple[list[int], list[int]]:
-        """
-        Generate shuffled lists of all possible X and Y coordinates.
+        Generate list of all possible positions.
 
         Args:
             dim (int): The puzzle dimension.
+            directions (Sequence[tuple[int, int]]): Directions to use.
+                Defaults to DIRECTIONS.
 
         Returns:
-            xlist (list[int]): List of X coordinates.
-            ylist (list[int]): List of Y coordinates.
+            positions (tuple[Position]): All positions in all directions
         """
 
-        xlist = list(range(dim))
-        random.shuffle(xlist)
-        ylist = list(range(dim))
-        random.shuffle(ylist)
-        return xlist, ylist
+        return [
+            Position(x, y, direction)
+            for x in range(dim)
+            for y in range(dim)
+            for direction in directions
+            ]
 
     @staticmethod
+    def can_place(word: str, pos: Position, puzzle: np.array) -> (bool, int):
+        """
+        Determine if we can place a word, and count intersections if so.
+
+        Args:
+            word (str): The word to check.
+            pos (Position): The position to try placing the word at.
+            puzzle (np.array): The current puzzle to try placing in.
+
+        Returns:
+            valid (bool): Can the word be placed here?
+            intersect (int): How many other words does it legally intersect?
+        """
+
+        wordlen = len(word)
+        wordarr = np.array(list(word), dtype=str)
+        dim = puzzle.shape[0]  # Assume the puzzle is square
+
+        # The word must be short enough
+        if not pos.bounds_check(wordlen, dim):
+            return False, 0
+
+        indices = pos.indices(wordlen)
+
+        # The letter positions for this word already match it from other words
+        intersecion_arr = puzzle[indices] == wordarr
+
+        # The letter positions for this word that are blank
+        blankspots = puzzle[indices] == ""
+
+        # If all the spots are either legal intersections or blank
+        success_arr = np.logical_or(intersecion_arr, blankspots)
+
+        return not (False in success_arr), int(sum(intersecion_arr))
+
+    @property
+    def cur_word(self) -> str | None:
+        """The current word being placed"""
+        if not self.words or self.index >= len(self.words):
+            return None
+        return self.words[self.index]
+
+    @property
+    def cur_workable_posits(self):
+        """The workable positions for the current word"""
+
+        # Calculate avaliable positions if we haven't already
+        if self.cur_word not in self.all_workable_posits:
+            cur_workable_posits = [
+                pos for pos in self.all_positions
+                if Generator.can_place(self.cur_word, pos, self.table)[0]
+                ]
+            random.shuffle(cur_workable_posits)
+
+            # Be biased about word intersections
+            if self.intersect_bias:
+                cur_workable_posits.sort(
+                    key=lambda pos: Generator.can_place(self.cur_word, pos, self.table)[1]
+                    )
+                # Favor intersections rather than avoid them
+                if self.intersect_bias > 0:
+                    cur_workable_posits.reverse()
+            self.all_workable_posits[self.cur_word] = cur_workable_posits
+
+        return self.all_workable_posits[self.cur_word]
+
+    @cur_workable_posits.deleter
+    def cur_workable_posits(self):
+        """Delete the stored workable positions of the current word"""
+        del self.all_workable_posits[self.cur_word]
+
     def gen_word_search(
+            self,
             words: list[str],
             directions: Sequence[tuple[int, int]] = DIRECTIONS,
-            size_fac: int = SIZE_FAC_DEFAULT
+            size_fac: int = SIZE_FAC_DEFAULT,
+            intersect_bias: int | bool = False,
             ) -> list[list[str]]:
         """
         Generate a word search puzzle.
 
         Args:
             words (list[str]): List of words to put in puzzle.
-            directions (Sequence[Sequence[int, int]]) = Optionally specify the directions the words can go in.
+            directions (Sequence[Sequence[int, int]]) = Optionally specify the
+                directions the words can go in.
                 Defaults to all DIRECTIONS.
-            size_fac (int): The ratio of word letters to total letters to aim for.
+            size_fac (int): The ratio of word letters to total letters to aim
+                for.
                 Defaults to SIZE_FAC_DEFAULT.
+            intersect_bias (int | bool): Wether or not to be biased about word
+                intersections.
+                False or 0 means no bias.
+                True or 1 means favor intersections.
+                -1 means avoid intersections.
+                Defaults to False.
 
         Returns:
             table (np.array): The completed puzzle.
         """
 
-        dim = Generator.get_puzzle_dim(words, size_fac)  # Generate puzzle dimension
-        table = Generator.create_empty_table(dim)
-        table_history = {}
+        # Remove all duplicate words
+        self.words = list(set(words))
 
-        # Dict of positions for each word that have been tried but hurt future words. Future word values should ALWAYS be empty.
-        tried_positions = Generator.create_blank_tried_pos(words)
+        self.dim = Generator.get_puzzle_dim(self.words, size_fac)  # Generate puzzle dimension
 
-        current_index = 0
-        while current_index < len(words):  # place every word
+        # Store other arguments
+        self.directions = directions
+        self.intersect_bias = intersect_bias
 
-            word = words[current_index]
+        self.reset_generation_data()
 
-            table_history[word] = table.copy()  # Record previous table state
+        # Continue until we get through all of the words
+        self.halted = False
+        while self.index < len(self.words) and not self.halted:
 
-            # Randomly shuffle all coordinate possibilities
-            xlist, ylist = Generator.all_random_coords(dim)
+            # This word has no workable positions that don't hurt future words
+            if not self.cur_workable_posits:
+                # Remove the now empty workable positions from the tree
+                del self.cur_workable_posits
 
-            # For all possible positions (randomized)...
-            for x in xlist:
-                for y in ylist:
+                # Back track to the previous word
+                self.index -= 1
 
-                    # If all directions for this position are used, this will be the default value
-                    success = False
+                # All words failed to place, puzzle is too small!
+                # Reset to larger puzzle
+                if self.index < 0:
+                    self.dim += 1
+                    self.reset_generation_data()
 
-                    # For all possible directions (randomized per position)...
-                    random.shuffle(directions)
-                    for direction in directions:
+                # Reset to table state before the previous word was placed,
+                # and remove the previous word's first tried position
+                else:
+                    self.table = self.table_history[self.index]
+                    self.table_history.pop(self.index)
+                    self.cur_workable_posits.pop(0)
 
-                        if (x, y, direction) in tried_positions[word]:
-                            continue  # We already tried this direction
+            # We have positions we can try
+            else:
+                # Save the table state before the word was added
+                self.table_history.append(self.table.copy())
 
-                        tcopy = table.copy()  # Copy the table
-                        pos = [x, y]  # Current position in the word. To be incremented forward by direction for each letter
-                        success = True  # Assume that the letter placing loop will succeed ;-D
+                # Try the first position
+                self.table[self.cur_workable_posits[0].indices(len(self.cur_word))] = \
+                    np.array(list(self.cur_word), dtype=str)
+                self.index += 1
 
-                        for letter in word:  # Move forward in the word
-                            try:  # check that the index is valid. REMEMBER: table must be indexed [y][x]
-                                # Do not allow negative indexes
-                                if pos[0] < 0 or pos[1] < 0:
-                                    raise IndexError
+            # Regardless what happened in the loop, report progress
+            self.progress_step()
 
-                                tcopy[*pos]
-
-                            except IndexError:  # Position does not exist
-                                success = False
-                                break
-
-                            # Try placing the letter...
-                            if not tcopy[*pos]:  # Letter successfully placed
-                                tcopy[*pos] = letter
-
-                            elif tcopy[*pos] == letter:  # Position was assigned, but is already this letter. Okay :-)
-                                continue
-
-                            else:  # Position is occupied by a different letter. Try another direction or spot...
-                                success = False
-                                break
-
-                            # Step the position forward by direction
-                            pos[0] += direction[0]
-                            pos[1] += direction[1]
-
-                        if success:  # Word successfully placed at this orientation
-                            break
-                    if success:  # ...and at this Y position
-                        break
-                if success:  # ...and at this X position
-                    break
-            if success:  # ...So, write changes to the table
-                table = tcopy.copy()
-                tried_positions[word].append((x, y, direction))  # Record the tried position for potential FUTURE use
-                current_index += 1
-
-            else:  # No position or orientation worked, so backtrack previous word placings
-                current_index -= 1
-                # Since we're backing up in the word list, any previously tried placing positions for this word are now invalid
-                tried_positions[word] = []
-                table = table_history[word].copy()
-
-                # Nothing worked all the way back through the first word
-                # so the puzzle is too small for this word list.
-                if current_index < 0:
-                    dim += 1
-                    table = Generator.create_empty_table(dim)
-                    table_history = {}  # May be no reason to clear this, but just to be safe
-                    current_index = 0
+        # The generation was cancelled
+        if self.halted:
+            return None
 
         # Swap the X and Y axes for display
-        return np.rot90(np.fliplr(table))
+        return np.rot90(np.fliplr(self.table))
 
     @staticmethod
     def render_puzzle(table: np.array, fill: bool = True) -> str:

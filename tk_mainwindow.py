@@ -5,10 +5,10 @@ Present a GUI for the word search generator algorithm (Tkitner)
 
 This file is part of Word Search Generator.
 
-Word Search Generator is free software: you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation, either version 3 of the License, or (at your option) any later
-version.
+Word Search Generator is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any
+later version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
@@ -19,94 +19,150 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 
 S.D.G."""
 
-from tkinter import *
-from tkinter.ttk import *
-from tkinter import messagebox as mb
+import tkinter as tk
+from tkinter import ttk
 
 from algorithm import (
-    Generator,
-    ALL_CHARS,
-    DIRECTIONS,
-    EASY_DIRECTIONS,
     SIZE_FAC_DEFAULT,
+    INTERSECT_BIASES,
+    INTERSECT_BIAS_DEFAULT,
     )
-
+from gui_common import GUICommon
 
 TK_SIZE_FAC_OPTIONS = tuple(range(2, 10))
+PAD = 10  # Widget padding
 
 
-class TkWindow(Tk):
+class TkWindow(tk.Tk, GUICommon):
     """Word Search Generator GUI"""
 
     def __init__(self):
         """Word Search Generator GUI"""
-        super().__init__()
-        self.title("Word Search Gen")
+        tk.Tk.__init__(self)
+        GUICommon.__init__(self)
+
+        self.title(GUICommon.Lang.window_title)
 
         # Tkinter variables
-        self.use_hard = BooleanVar(self, True)
-        self.size_fac_str = StringVar(self, SIZE_FAC_DEFAULT)
-        self.size_fac_str.trace_add("write", lambda *args: self.verify_size_fac())
+        self.__use_hard = tk.BooleanVar(self, True)
+        self.__size_fac = tk.StringVar(self, SIZE_FAC_DEFAULT)
+        self.__size_fac.trace_add(
+            "write",
+            lambda *args: self.verify_size_fac()
+            )
+        self.__intersect_bias = tk.IntVar(
+            self,
+            INTERSECT_BIASES[INTERSECT_BIAS_DEFAULT]
+            )
 
         self.build()
         self.mainloop()
+
+    @property
+    def use_hard(self) -> bool:
+        """Wether or not we are set to use hard directions"""
+        return self.__use_hard.get()
 
     def build(self):
         """Construct the GUI widgets"""
 
         # Checkbutton for using hard directions
-        Checkbutton(self, text="Use backwards directions", variable=self.use_hard).grid(row=0, sticky=N+E+W)
+        ttk.Checkbutton(
+            self,
+            text=GUICommon.Lang.use_hard,
+            variable=self.__use_hard
+            ).grid(row=0, sticky=tk.NSEW, padx=PAD, pady=(PAD, 0))
 
         # Number area for size_fac
-        self.sf_frame = Frame(self)
-        self.sf_frame.grid(row=1, sticky = EW)
+        self.sf_frame = ttk.Frame(self)
+        self.sf_frame.grid(row=1, sticky=tk.NSEW, padx=PAD, pady=(PAD, 0))
 
-        Label(self.sf_frame, text = "Size factor:").grid(row=0, column=0, sticky=E + N)
+        ttk.Label(
+            self.sf_frame,
+            text=GUICommon.Lang.size_factor + " ",
+            anchor=tk.E,
+            ).grid(row=0, column=0, sticky=tk.NSEW)
 
-        self.sf_spinbox = Spinbox(self.sf_frame, values=TK_SIZE_FAC_OPTIONS, textvariable=self.size_fac_str)
-        self.sf_spinbox.grid(row=0, column=1, sticky=N + EW)
+        self.sf_spinbox = ttk.Spinbox(
+            self.sf_frame,
+            values=TK_SIZE_FAC_OPTIONS,
+            textvariable=self.__size_fac
+            )
+        self.sf_spinbox.grid(row=0, column=1, sticky=tk.NSEW)
 
-        self.sf_frame.columnconfigure(1, weight=1)  # Resize size factor frame around the column with the spinbox.
+        # Resize size factor frame around the column with the spinbox.
+        self.sf_frame.columnconfigure(1, weight=1)
+
+        # Intersection bias chooser
+        self.bias_frame = ttk.Frame(self)
+        self.bias_frame.grid(row=2, sticky=tk.NSEW, padx=PAD//2, pady=(PAD, 0))
+        ttk.Label(self.bias_frame, text=GUICommon.Lang.word_intersect_bias)\
+            .grid(row=0, column=0, columnspan=3, sticky=tk.NSEW, padx=PAD//2)
+
+        # Create radiobuttons for the three biases
+        for i, bias_pair in enumerate(INTERSECT_BIASES.items()):
+            bias_name, bias_value = bias_pair
+            ttk.Radiobutton(
+                self.bias_frame,
+                text=bias_name.capitalize(),
+                variable=self.__intersect_bias,
+                value=bias_value
+                ).grid(row=1, column=i, sticky=tk.NSEW,
+                       padx=PAD//2, pady=PAD//2)
+            self.bias_frame.columnconfigure(i, weight=1)
 
         # Entry area for the words, and a scrollbar
-        self.entry_frame = Frame(self)
-        self.entry_frame.grid(row=2, sticky=NSEW)
-        self.text = Text(self.entry_frame, width=30, height=10, wrap="word")
-        self.scrollbar = Scrollbar(self.entry_frame)
+        self.entry_frame = ttk.Frame(self)
+        self.entry_frame.grid(row=3, sticky=tk.NSEW, padx=PAD)
+        self.text = tk.Text(self.entry_frame, width=30, height=10, wrap="word")
+        self.text.bind(
+            "<KeyRelease>",
+            lambda _: self.on_input_text_changed(),
+            )
+        self.scrollbar = ttk.Scrollbar(self.entry_frame)
 
-        self.scrollbar["command"] = self.text.yview  # Connect scrollbar to text
-        self.text.configure(yscrollcommand=self.scrollbar.set)  # Connect text to scrollbar
+        # Connect scrollbar to text area
+        self.scrollbar["command"] = self.text.yview
+        self.text.configure(yscrollcommand=self.scrollbar.set)
 
-        self.scrollbar.grid(row=0, column=1, sticky = NS + E)
-        self.text.grid(row=0, column=0, sticky=N+S+E+W)
-        self.text.insert(0.0, "Delete this text, then enter one word per line.")
+        self.scrollbar.grid(row=0, column=1, sticky=tk.NSEW)
+        self.text.grid(row=0, column=0, sticky=tk.NSEW)
+        self.words_entry_raw = GUICommon.Lang.word_entry_default
+        self.on_input_text_changed()
 
         # Resize the entry frame around the text box
         self.entry_frame.rowconfigure(0, weight=1)
         self.entry_frame.columnconfigure(0, weight=1)
 
-        # Go button
-        Button(self, text="Generate", command=self.generate_puzzle).grid(row=3, sticky=S + EW)
+        # Resize the GUI about the entry frame
+        self.rowconfigure(3, weight=1)
 
-        # Resize GUI about entry frame
-        self.rowconfigure(2, weight=1)
+        # Go button
+        self.gen_button = ttk.Button(self, text=GUICommon.Lang.gen_button, command=self.generate_puzzle)
+        self.gen_button.grid(row=4, sticky=tk.NSEW, padx=PAD, pady=(PAD//2, 0))
+        self.regulate_gen_button()
+
+        # The result buttons
+        self.resultbuttons_frame = ttk.Frame(self)
+        self.resultbuttons_frame.grid(row=5, sticky=tk.NSEW, padx=PAD, pady=(PAD//2, PAD))
+        self.copypuzz_button = ttk.Button(self.resultbuttons_frame, text=GUICommon.Lang.copypuzz_button, command=self.copy_puzzle)
+        self.copypuzz_button.grid(row=0, column=0, sticky=tk.NSEW, padx=(0, PAD/4))
+        self.resultbuttons_frame.columnconfigure(0, weight=1)
+        self.copykey_button = ttk.Button(self.resultbuttons_frame, text=GUICommon.Lang.copykey_button, command=self.copy_answer_key)
+        self.copykey_button.grid(row=0, column=1, sticky=tk.NSEW, padx=(PAD/4, 0))
+        self.resultbuttons_frame.columnconfigure(1, weight=1)
+        self.regulate_result_buttons()
+
+        # Resize horizontally
         self.columnconfigure(0, weight=1)
 
-    @property
-    def directions(self) -> list[tuple[int, int]]:
-        """Set up directions to use"""
-        if self.use_hard.get():
-            return DIRECTIONS
-
-        return EASY_DIRECTIONS
-
     def verify_size_fac(self):
-        """Ensure that size_fac_str is numbers only and not below 1"""
-        self.size_fac_str.set(
+        """Ensure that __size_fac is numbers only and not below 1"""
+        self.__size_fac.set(
             max((
                 int(
                     "0" + "".join((
-                        char for char in self.size_fac_str.get()
+                        char for char in self.__size_fac.get()
                         if char.isnumeric()
                         ))
                     )
@@ -116,72 +172,56 @@ class TkWindow(Tk):
             )
 
     @property
-    def size_fac(self) -> int:
+    def size_factor(self) -> int:
         """Configure the size factor"""
-
         return int(self.sf_spinbox.get())
 
-    def generate_puzzle(self):
-        """Generate a puzzle from the input words"""
+    @property
+    def intersect_bias(self) -> int:
+        """The intersection bias we are set to use"""
+        return self.__intersect_bias.get()
 
-        words_raw = self.text.get(0.0, END).strip().upper()  # Read the entry area for words
-
-        # Checkpoint against invalid characters
-        for letter in words_raw:
-            if letter not in ALL_CHARS and not letter.isspace():
-                words_raw = None
-                break
-
-        # Report and halt at any text problems
-        if not words_raw:
-            mb.showerror("Invalid text", "Enter one word per line with no punctuation.")
-            return
-
-        # Generate the puzzle
-        words = words_raw.split()
-        table = Generator.gen_word_search(words, directions=self.directions, size_fac=self.size_fac)
-
-        # Render the puzzle
-        text = Generator.render_puzzle(table)
-
-        # Copy the finished puzzle to the Tkinter/system clipboard
+    def copy_to_clipboard(self, text: str):
+        """copy text to the clipboard"""
         self.clipboard_clear()
         self.clipboard_append(text)
 
-        # Patch for issue #1
-        print("--- Puzzle ---")
-        print(text)
-        print("--------------")
+    @property
+    def words_entry_raw(self):
+        """The raw entry in the text area"""
+        return self.text.get(0.0, tk.END)
 
-        mb.showinfo(
-            "Generation complete",
-            "The puzzle was copied to the clipboard (and printed to " +
-            "stdout). Paste into a word processor set for a monospaced font " +
-            "BEFORE closing this program.",
-            )
+    @words_entry_raw.setter
+    def words_entry_raw(self, new: str):
+        """The raw entry in the text area"""
+        self.text.delete(0.0, tk.END)
+        self.text.insert(0.0, new)
+        self.text.see(tk.END)
 
-        # Offer to print the key
-        if mb.askyesno(
-            "Show key",
-            "Would you like to copy (and print) the answer key now (will " +
-            "replace the puzzle)?",
-                ):
-            keytext = Generator.render_puzzle(table, fill=False)
+    @property
+    def result_buttons_able(self) -> bool:
+        """Are the result buttons enabled?"""
+        return hasattr(self, "copypuzz_button") and self.copypuzz_button["state"] != tk.DISABLED
 
-            # Copy the finished puzzle key to the Tkinter/system clipboard
-            self.clipboard_clear()
-            self.clipboard_append(keytext)
+    @result_buttons_able.setter
+    def result_buttons_able(self, state: bool):
+        """Enable or disable the result buttons"""
+        for button in ("copypuzz_button", "copykey_button"):
+            if not hasattr(self, button):
+                continue
+            getattr(self, button).configure(state=(tk.DISABLED, tk.NORMAL)[state])
 
-            # Patch for issue #1
-            print("- Answer Key -")
-            print(keytext)
-            print("--------------")
+    @property
+    def gen_button_able(self) -> bool:
+        """Is the generate button enabled?"""
+        return hasattr(self, "gen_button") and self.gen_button["state"] != tk.DISABLED
 
-            mb.showinfo(
-                "Key copied",
-                "The answer key was copied to the clipboard (and printed to " +
-                "stdout)."
-                )
+    @gen_button_able.setter
+    def gen_button_able(self, state: bool):
+        """Enable or disable the generate button"""
+        if not hasattr(self, "gen_button"):
+            return
+        self.gen_button.config(state=(tk.DISABLED, tk.NORMAL)[state])
 
 
 def main():

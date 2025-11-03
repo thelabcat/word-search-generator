@@ -20,20 +20,22 @@ this program. If not, see <https://www.gnu.org/licenses/>."""
 import argparse
 import os
 import sys
+from warnings import warn
 from algorithm import (
     Generator,
     ALL_CHARS,
     DIRECTIONS,
     EASY_DIRECTIONS,
     SIZE_FAC_DEFAULT,
+    INTERSECT_BIASES,
+    INTERSECT_BIAS_DEFAULT,
     )
 
 try:
     from qt_mainwindow import main as qtmain
     HAVE_QT = True
 except ImportError as e:
-    print("Could not import the Qt GUI module:")
-    print(e)
+    warn(f"Could not import the Qt GUI module: {e}")
     HAVE_QT = False
 
 from tk_mainwindow import main as tkmain
@@ -42,15 +44,53 @@ from tk_mainwindow import main as tkmain
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog=os.path.basename(__file__),
-        description="Generate word search puzzles, CLI or GUI",
-        epilog="S.D.G.")
+        description="Generate word search puzzles, CLI or GUI. CLI options " +
+        "only have effect in CLI mode. CLI mode is triggered by passing any " +
+        "words to the command.",
+        epilog="S.D.G.",
+        )
 
-    parser.add_argument("-t", "--tkinter", action="store_true", help="(GUI) Use the legacy Tkinter GUI instead of Qt")
-    parser.add_argument("-H", "--use-hard", action="store_true", help="(CLI) Use the harder, backwards (11-o'-clock) directions")
-    parser.add_argument("-s", "--size-factor", type=int, help=f"(CLI) Set the starting factor of how many junk characters to fill characters to use (will increase as neccesary), defaults to {SIZE_FAC_DEFAULT}", default=SIZE_FAC_DEFAULT)
-    parser.add_argument("-a", "--answers", action="store_true", help="(CLI) Also print the puzzle with no filler characters")
-    parser.add_argument("-d", "--no-decorate", action="store_true", help="(CLI) Don't print decoration lines around puzzle and key")
-    parser.add_argument("words", nargs="*", type=str, help="(CLI) Words to put into the puzzle, or '-' to accept stdin")
+    parser.add_argument(
+        "-t", "--tkinter",
+        action="store_true",
+        help="(GUI) Use the legacy Tkinter GUI instead of Qt",
+        )
+    parser.add_argument(
+        "-H", "--use-hard",
+        action="store_true",
+        help="(CLI) Use the harder, backwards (11-o'-clock) directions",
+        )
+    parser.add_argument(
+        "-s", "--size-factor",
+        type=int,
+        help="(CLI) Set the starting factor of how many junk characters to " +
+        "fill characters to use (will increase as neccesary), defaults to " +
+        f"{SIZE_FAC_DEFAULT}",
+        default=SIZE_FAC_DEFAULT,
+        )
+    parser.add_argument(
+        "-b", "--intersect-bias",
+        type=int,
+        help="(CLI) Set a bias toward or against word intersections. " +
+        f"Defaults to {INTERSECT_BIASES[INTERSECT_BIAS_DEFAULT]}, " +
+        f"{INTERSECT_BIAS_DEFAULT} intersections",
+        )
+    parser.add_argument(
+        "-a", "--answers",
+        action="store_true",
+        help="(CLI) Also print the puzzle with no filler characters",
+        )
+    parser.add_argument(
+        "-d", "--no-decorate",
+        action="store_true",
+        help="(CLI) Don't print decoration lines around puzzle and key",
+        )
+    parser.add_argument(
+        "words",
+        nargs="*",
+        type=str,
+        help="(CLI) Words to put into the puzzle, or '-' to accept stdin",
+        )
     args = parser.parse_args()
 
     # We are CLI
@@ -65,10 +105,11 @@ if __name__ == "__main__":
         for char in "".join(words):
             assert char in ALL_CHARS, "Invalid characters detected in input"
 
-        table = Generator.gen_word_search(
+        table = Generator().gen_word_search(
             words,
             directions=DIRECTIONS if args.use_hard else EASY_DIRECTIONS,
             size_fac=args.size_factor,
+            intersect_bias=args.intersect_bias,
             )
 
         # Render the puzzle

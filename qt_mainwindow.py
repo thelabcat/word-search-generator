@@ -20,75 +20,151 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 S.D.G."""
 
 import sys
-from PySide6.QtCore import Slot
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
     QCheckBox,
     QLabel,
     QSpinBox,
+    QRadioButton,
     QHBoxLayout,
     QVBoxLayout,
     QPlainTextEdit,
     QPushButton,
-    QMessageBox,
     )
 
 from algorithm import (
-    Generator,
-    ALL_CHARS,
-    DIRECTIONS,
-    EASY_DIRECTIONS,
     SIZE_FAC_DEFAULT,
+    INTERSECT_BIASES,
+    INTERSECT_BIAS_DEFAULT,
     )
+from gui_common import GUICommon
 
 # Size factor options
 SIZE_FAC_RANGE = 1, 99
 
 
-class QtWindow(QWidget):
+class QtWindow(QWidget, GUICommon):
     """The Qt superwidget"""
 
     def __init__(self):
         """The Qt superwidget"""
-        super().__init__()
+        QWidget.__init__(self)
+        GUICommon.__init__(self)
+
         self.clipboard = QApplication.clipboard()
+        self.__intersect_bias = INTERSECT_BIASES[INTERSECT_BIAS_DEFAULT]
         self.build()
+
+    def copy_to_clipboard(self, text: str):
+        """copy text to the clipboard"""
+        return self.clipboard.setText(text)
+
+    @property
+    def intersect_bias(self):
+        """The intersection bias we are set to use"""
+        return self.__intersect_bias
 
     def build(self):
         """Construct the GUI"""
 
         # Wether or not to use hard directions
-        self.use_hard_w = QCheckBox("Use backwards directions")
+        self.use_hard_w = QCheckBox(GUICommon.Lang.use_hard)
+        self.use_hard_w.setChecked(True)
 
         # The size factor control
         self.sf_spinbox = QSpinBox()
         self.sf_spinbox.setRange(*SIZE_FAC_RANGE)
         self.sf_spinbox.setValue(SIZE_FAC_DEFAULT)
 
-        self.sf_label = QLabel("Size factor:")
+        self.sf_label = QLabel(GUICommon.Lang.size_factor)
         self.sf_label.setBuddy(self.sf_spinbox)
 
         self.sf_layout = QHBoxLayout()
         self.sf_layout.addWidget(self.sf_label)
         self.sf_layout.addWidget(self.sf_spinbox, stretch=1)
 
+        # The intersection bias choosing
+        self.bias_label = QLabel(GUICommon.Lang.word_intersect_bias)
+
+        self.bias_ops_layout = QHBoxLayout()
+        for bias_name, bias_value in INTERSECT_BIASES.items():
+            widget = QRadioButton(bias_name.capitalize())
+            widget.bias_value = bias_value
+            widget.toggled.connect(self.update_intersect_bias)
+            if bias_name == INTERSECT_BIAS_DEFAULT:
+                widget.setChecked(True)
+            self.bias_ops_layout.addWidget(widget)
+
+        self.bias_layout = QVBoxLayout()
+        self.bias_layout.addWidget(self.bias_label)
+        self.bias_layout.addLayout(self.bias_ops_layout)
+
         # The text area
         self.entry_w = QPlainTextEdit()
-        self.entry_w.appendPlainText("Delete this text, then enter one word per line.")
+        self.entry_w.textChanged.connect(self.on_input_text_changed)
+        self.words_entry_raw = GUICommon.Lang.word_entry_default
 
-        # Finally, the generate button
-        self.gen_button = QPushButton("Generate")
+        # The generate button
+        self.gen_button = QPushButton(GUICommon.Lang.gen_button)
         self.gen_button.clicked.connect(self.generate_puzzle)
+        self.regulate_gen_button()
+
+        # The result copying buttons
+        self.copypuzz_button = QPushButton(GUICommon.Lang.copypuzz_button)
+        self.copypuzz_button.clicked.connect(self.copy_puzzle)
+        self.copykey_button = QPushButton(GUICommon.Lang.copykey_button)
+        self.copykey_button.clicked.connect(self.copy_answer_key)
+        self.resultbuttons_layout = QHBoxLayout()
+        self.resultbuttons_layout.addWidget(self.copypuzz_button)
+        self.resultbuttons_layout.addWidget(self.copykey_button)
+        self.regulate_result_buttons()
 
         # The overall layout
         self.main_layout = QVBoxLayout(self)
         self.main_layout.addWidget(self.use_hard_w)
         self.main_layout.addLayout(self.sf_layout)
+        self.main_layout.addLayout(self.bias_layout)
         self.main_layout.addWidget(self.entry_w, stretch=1)
         self.main_layout.addWidget(self.gen_button)
+        self.main_layout.addLayout(self.resultbuttons_layout)
 
-        self.setWindowTitle("Word Search Generator")
+        self.setWindowTitle(GUICommon.Lang.window_title)
+
+    @property
+    def result_buttons_able(self) -> bool:
+        """Are the result buttons enabled?"""
+        return hasattr(self, "copypuzz_button") \
+            and self.copypuzz_button.isEnabled()
+
+    @result_buttons_able.setter
+    def result_buttons_able(self, state: bool):
+        """Enable or disable the result buttons"""
+        if not (
+                hasattr(self, "copypuzz_button") and
+                hasattr(self, "copykey_button")
+                ):
+            return
+        self.copypuzz_button.setEnabled(state)
+        self.copykey_button.setEnabled(state)
+
+    @property
+    def gen_button_able(self) -> bool:
+        """Is the generate button enabled?"""
+        return hasattr(self, "gen_button") and self.gen_button.isEnabled()
+
+    @gen_button_able.setter
+    def gen_button_able(self, state: bool):
+        """Enable or disable the generate button"""
+        if not hasattr(self, "gen_button"):
+            return
+        self.gen_button.setEnabled(state)
+
+    def update_intersect_bias(self):
+        """Set the current bias from the radiobuttons"""
+        radiobutton = self.sender()
+        if radiobutton.isChecked:
+            self.__intersect_bias = self.sender().bias_value
 
     @property
     def use_hard(self):
@@ -96,81 +172,20 @@ class QtWindow(QWidget):
         return self.use_hard_w.isChecked()
 
     @property
-    def directions(self) -> list[tuple[int, int]]:
-        """Set up directions to use"""
-        if self.use_hard:
-            return DIRECTIONS
-
-        return EASY_DIRECTIONS
-
-    @property
     def size_factor(self):
         """The selected size factor of the puzzle"""
         return self.sf_spinbox.value()
 
-    @Slot()
-    def generate_puzzle(self):
-        """Generate a puzzle from the input words"""
+    @property
+    def words_entry_raw(self):
+        """The raw entry in the text area"""
+        return self.entry_w.toPlainText()
 
-        words_raw = self.entry_w.toPlainText().strip().upper()  # Read the entry area for words
-
-        # Checkpoint against invalid characters
-        for letter in words_raw:
-            if letter not in ALL_CHARS and not letter.isspace():
-                words_raw = None
-                break
-
-        # Report and halt at any text problems
-        if not words_raw:
-            QMessageBox.critical(self, "Invalid text", "Enter one word per line with no punctuation.")
-            return
-
-        # Generate the puzzle
-        words = words_raw.split()
-        table = Generator.gen_word_search(words, directions=self.directions, size_fac=self.size_factor)
-
-        # Render the puzzle
-        text = Generator.render_puzzle(table)
-
-        # Copy the finished puzzle to the Tkinter/system clipboard
-        self.clipboard.setText(text)
-
-        # Patch for issue #1
-        print("--- Puzzle ---")
-        print(text)
-        print("--------------")
-
-        QMessageBox.information(
-            self,
-            "Generation complete",
-            "The puzzle was copied to the clipboard (and printed to " +
-            "stdout). Paste into a word processor set for a monospaced font " +
-            "BEFORE closing this program.",
-            )
-
-        # Offer to print the key
-        if QMessageBox.question(
-            self,
-            "Show key",
-            "Would you like to copy (and print) the answer key now (will " +
-            "replace the puzzle)?",
-                ) == QMessageBox.Yes:
-            keytext = Generator.render_puzzle(table, fill=False)
-
-            # Copy the finished puzzle key to the Tkinter/system clipboard
-            self.clipboard.setText(keytext)
-
-            # Patch for issue #1
-            print("- Answer Key -")
-            print(keytext)
-            print("--------------")
-
-            QMessageBox.information(
-                self,
-                "Key copied",
-                "The answer key was copied to the clipboard (and printed to " +
-                "stdout)."
-                )
+    @words_entry_raw.setter
+    def words_entry_raw(self, new: str):
+        """The raw entry in the text area"""
+        self.entry_w.clear()
+        self.entry_w.appendPlainText(new)
 
 
 def main():
