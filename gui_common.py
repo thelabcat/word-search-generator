@@ -51,9 +51,57 @@ class GUICommon:
         self.last_used_words = []
 
     @property
+    def use_hard(self) -> bool:
+        """Wether or not we are set to use hard directions"""
+        raise NotImplementedError
+
+    @property
+    def size_factor(self) -> int:
+        """The size factor we are set to use"""
+        raise NotImplementedError
+
+    @property
+    def intersect_bias(self) -> int:
+        """The intersection bias we are set to use"""
+        raise NotImplementedError
+
+    def copy_to_clipboard(self, text: str):
+        """copy text to the clipboard"""
+        raise NotImplementedError
+
+    @property
+    def words_entry_raw(self):
+        """The raw entry in the text area"""
+        raise NotImplementedError
+
+    @words_entry_raw.setter
+    def words_entry_raw(self, new: str):
+        """The raw entry in the text area"""
+        raise NotImplementedError
+
+    @property
+    def result_buttons_able(self) -> bool:
+        """Are the result buttons enabled?"""
+        raise NotImplementedError
+
+    @result_buttons_able.setter
+    def result_buttons_able(self, state: bool):
+        """Enable or disable the result buttons"""
+        raise NotImplementedError
+
+    @property
+    def gen_button_able(self) -> bool:
+        """Is the generate button enabled?"""
+        raise NotImplementedError
+
+    @gen_button_able.setter
+    def gen_button_able(self, state: bool):
+        """Enable or disable the generate button"""
+        raise NotImplementedError
+
+    @property
     def current_words(self):
         """The currently entered words"""
-        self.format_input_text()
         return self.words_entry_raw.strip().upper().split()
 
     @property
@@ -87,7 +135,12 @@ class GUICommon:
         if text[-1].isspace():
             lines.append("")
 
-        self.words_entry_raw = "\n".join(lines)
+        # If no changes were made, don't write them (prevents recursion)
+        new_text = "\n".join(lines)
+        if self.words_entry_raw == new_text:
+            return
+
+        self.words_entry_raw = new_text
 
     def regulate_gen_button(self):
         """Set the state of the go button appropriately"""
@@ -98,8 +151,7 @@ class GUICommon:
 
         # Enable the result buttons if we have a puzzle to copy,
         # and the entered words have not changed
-        self.result_buttons_able = self.puzz_table is not None \
-            and self.current_words == self.last_used_words
+        self.result_buttons_able = self.puzz_table is not None
 
     def generate_puzzle(self):
         """Generate a puzzle from the input words"""
