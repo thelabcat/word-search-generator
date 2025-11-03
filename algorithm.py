@@ -124,6 +124,38 @@ class Generator:
     fill_with_random = np.vectorize(lambda spot: spot if spot else random.choice(ALL_CHARS))
     fill_with_space = np.vectorize(lambda spot: spot if spot else " ")
 
+    def __init__(self, progress_step: callable = None):
+        """Generate a word search puzzle
+
+        Args:
+            progress_step (callable): Will call this method for every word placed.
+                Defaults to None
+        """
+
+        self.__progress_step = progress_step
+
+        self.words = None
+        self.dim = 1
+        self.directions = ()
+        self.intersect_bias = 0
+        self.reset_generation_data()
+
+        # For killing the loop mid-generation
+        self.halted = True
+
+    def progress_step(self):
+        """Report our progress if we were passed a callable for such"""
+        if callable(self.__progress_step):
+            self.__progress_step()
+
+    def reset_generation_data(self):
+        """Create starter generation data with self.dim"""
+        self.table = Generator.create_empty_table(self.dim)
+        self.all_workable_posits = {}
+        self.all_positions = Generator.all_posits(self.dim, self.directions)
+        self.table_history = []
+        self.index = 0
+
     @staticmethod
     def get_puzzle_dim(words: list[str], size_fac: int):
         """
@@ -225,8 +257,44 @@ class Generator:
 
         return not (False in success_arr), int(sum(intersecion_arr))
 
-    @staticmethod
+    @property
+    def cur_word(self) -> str | None:
+        """The current word being placed"""
+        if not self.words or self.index >= len(self.words):
+            return None
+        return self.words[self.index]
+
+    @property
+    def cur_workable_posits(self):
+        """The workable positions for the current word"""
+
+        # Calculate avaliable positions if we haven't already
+        if self.cur_word not in self.all_workable_posits:
+            cur_workable_posits = [
+                pos for pos in self.all_positions
+                if Generator.can_place(self.cur_word, pos, self.table)[0]
+                ]
+            random.shuffle(cur_workable_posits)
+
+            # Be biased about word intersections
+            if self.intersect_bias:
+                cur_workable_posits.sort(
+                    key=lambda pos: Generator.can_place(self.cur_word, pos, self.table)[1]
+                    )
+                # Favor intersections rather than avoid them
+                if self.intersect_bias > 0:
+                    cur_workable_posits.reverse()
+            self.all_workable_posits[self.cur_word] = cur_workable_posits
+
+        return self.all_workable_posits[self.cur_word]
+
+    @cur_workable_posits.deleter
+    def cur_workable_posits(self):
+        """Delete the stored workable positions of the current word"""
+        del self.all_workable_posits[self.cur_word]
+
     def gen_word_search(
+            self,
             words: list[str],
             directions: Sequence[tuple[int, int]] = DIRECTIONS,
             size_fac: int = SIZE_FAC_DEFAULT,
@@ -255,81 +323,60 @@ class Generator:
         """
 
         # Remove all duplicate words
-        words = list(set(words))
+        self.words = list(set(words))
 
-        dim = Generator.get_puzzle_dim(words, size_fac)  # Generate puzzle dimension
-        table = Generator.create_empty_table(dim)
-        all_workable_posits = {}  # Dict of word: list[Position]
-        all_positions = Generator.all_posits(dim, directions)
-        table_history = []  # History of table status, before each word was placed
+        self.dim = Generator.get_puzzle_dim(self.words, size_fac)  # Generate puzzle dimension
+
+        # Store other arguments
+        self.directions = directions
+        self.intersect_bias = intersect_bias
+
+        self.reset_generation_data()
 
         # Continue until we get through all of the words
-        index = 0
-        while index < len(words):
-            word = words[index]
-
-            # Load previously calculated available positions
-            if word in all_workable_posits:
-                cur_workable_posits = all_workable_posits[word]
-
-            # Calculate avaliable positions
-            else:
-                cur_workable_posits = [
-                    pos for pos in all_positions
-                    if Generator.can_place(word, pos, table)[0]
-                    ]
-                random.shuffle(cur_workable_posits)
-
-                # Be biased about word intersections
-                if intersect_bias:
-                    cur_workable_posits.sort(
-                        key=lambda pos: Generator.can_place(word, pos, table)[1]
-                        )
-                    # Favor intersections rather than avoid them
-                    if intersect_bias > 0:
-                        cur_workable_posits.reverse()
-
-                # Save calculated possible positions, so future word can
-                # eliminate them upon placement failure
-                all_workable_posits[word] = cur_workable_posits
+        self.halted = False
+        while self.index < len(self.words) and not self.halted:
 
             # This word has no workable positions that don't hurt future words
-            if not cur_workable_posits:
+            if not self.cur_workable_posits:
                 # Remove the now empty workable positions from the tree
-                del all_workable_posits[word]
+                del self.cur_workable_posits
 
                 # Back track to the previous word
-                index -= 1
+                self.index -= 1
 
                 # All words failed to place, puzzle is too small!
                 # Reset to larger puzzle
-                if index < 0:
-                    dim += 1
-                    table = Generator.create_empty_table(dim)
-                    all_workable_posits = {}
-                    all_positions = Generator.all_posits(dim, directions)
-                    table_history = []
-                    index = 0
+                if self.index < 0:
+                    self.dim += 1
+                    self.reset_generation_data()
 
                 # Reset to table state before the previous word was placed,
                 # and remove the previous word's first tried position
                 else:
-                    table = table_history[index]
-                    table_history.pop(index)
-                    all_workable_posits[words[index]].pop(0)
+                    self.table = self.table_history[self.index]
+                    self.table_history.pop(self.index)
+                    self.cur_workable_posits.pop(0)
 
             # We have positions we can try
             else:
                 # Save the table state before the word was added
-                table_history.append(table.copy())
+                self.table_history.append(self.table.copy())
 
                 # Try the first position
-                table[cur_workable_posits[0].indices(len(word))] = \
-                    np.array(list(word), dtype=str)
-                index += 1
+                self.table[self.cur_workable_posits[0].indices(len(self.cur_word))] = \
+                    np.array(list(self.cur_word), dtype=str)
+                self.index += 1
+
+            # Regardless what happened in the loop, report progress
+            self.progress_step()
+
+        # The generation was cancelled
+        if self.halted:
+            return None
 
         # Swap the X and Y axes for display
-        return np.rot90(np.fliplr(table))
+        return np.rot90(np.fliplr(self.table))
 
     @staticmethod
     def render_puzzle(table: np.array, fill: bool = True) -> str:

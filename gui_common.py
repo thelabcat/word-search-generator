@@ -47,8 +47,15 @@ class GUICommon:
         # The last generated puzzle
         self.puzz_table = None
 
+        # The generator object we will reuse
+        self.generator = Generator(self.progress_update)
+
         # The last used word list
         self.last_used_words = []
+
+    def progress_update(self):
+        """Update the GUI with progress of self.generator"""
+        NotImplemented
 
     @property
     def use_hard(self) -> bool:
@@ -156,7 +163,7 @@ class GUICommon:
     def generate_puzzle(self):
         """Generate a puzzle from the input words"""
 
-        self.puzz_table = Generator.gen_word_search(
+        self.puzz_table = self.generator.gen_word_search(
             self.current_words,
             directions=self.directions,
             size_fac=self.size_factor,

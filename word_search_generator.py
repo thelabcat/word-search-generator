@@ -105,7 +105,7 @@ if __name__ == "__main__":
         for char in "".join(words):
             assert char in ALL_CHARS, "Invalid characters detected in input"
 
-        table = Generator.gen_word_search(
+        table = Generator().gen_word_search(
             words,
             directions=DIRECTIONS if args.use_hard else EASY_DIRECTIONS,
             size_fac=args.size_factor,
