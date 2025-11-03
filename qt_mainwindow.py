@@ -20,8 +20,6 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 S.D.G."""
 
 import sys
-from PySide6.QtCore import Slot
-from PySide6.QtGui import QKeyEvent
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
@@ -33,14 +31,9 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QPlainTextEdit,
     QPushButton,
-    QMessageBox,
     )
 
 from algorithm import (
-    Generator,
-    ALL_CHARS,
-    DIRECTIONS,
-    EASY_DIRECTIONS,
     SIZE_FAC_DEFAULT,
     INTERSECT_BIASES,
     INTERSECT_BIAS_DEFAULT,
@@ -60,13 +53,17 @@ class QtWindow(QWidget, GUICommon):
         GUICommon.__init__(self)
 
         self.clipboard = QApplication.clipboard()
-        self.intersect_bias = INTERSECT_BIASES[INTERSECT_BIAS_DEFAULT]
+        self.__intersect_bias = INTERSECT_BIASES[INTERSECT_BIAS_DEFAULT]
         self.build()
 
+    def copy_to_clipboard(self, text: str):
+        """copy text to the clipboard"""
+        return self.clipboard.setText(text)
+
     @property
-    def copy_to_clipboard(self) -> callable:
-        """Copy text to the system clipboard"""
-        return self.clipboard.setText
+    def intersect_bias(self):
+        """The intersection bias we are set to use"""
+        return self.__intersect_bias
 
     def build(self):
         """Construct the GUI"""
@@ -94,7 +91,7 @@ class QtWindow(QWidget, GUICommon):
         for bias_name, bias_value in INTERSECT_BIASES.items():
             widget = QRadioButton(bias_name.capitalize())
             widget.bias_value = bias_value
-            widget.toggled.connect(self.set_bias)
+            widget.toggled.connect(self.update_intersect_bias)
             if bias_name == INTERSECT_BIAS_DEFAULT:
                 widget.setChecked(True)
             self.bias_ops_layout.addWidget(widget)
@@ -105,9 +102,8 @@ class QtWindow(QWidget, GUICommon):
 
         # The text area
         self.entry_w = QPlainTextEdit()
-
+        self.entry_w.textChanged.connect(self.on_input_text_changed)
         self.words_entry_raw = GUICommon.Lang.word_entry_default
-        self.on_input_text_changed()
 
         # The generate button
         self.gen_button = QPushButton(GUICommon.Lang.gen_button)
@@ -134,12 +130,6 @@ class QtWindow(QWidget, GUICommon):
         self.main_layout.addLayout(self.resultbuttons_layout)
 
         self.setWindowTitle(GUICommon.Lang.window_title)
-
-    def keyReleaseEvent(self, event):
-        """Handle key release events"""
-        super().keyReleaseEvent(event)
-        if isinstance(event, QKeyEvent):
-            self.on_input_text_useredit()
 
     @property
     def result_buttons_able(self) -> bool:
@@ -170,11 +160,11 @@ class QtWindow(QWidget, GUICommon):
             return
         self.gen_button.setEnabled(state)
 
-    def set_bias(self):
+    def update_intersect_bias(self):
         """Set the current bias from the radiobuttons"""
         radiobutton = self.sender()
         if radiobutton.isChecked:
-            self.intersect_bias = self.sender().bias_value
+            self.__intersect_bias = self.sender().bias_value
 
     @property
     def use_hard(self):
