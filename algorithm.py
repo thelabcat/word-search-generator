@@ -268,6 +268,9 @@ class Generator:
     def cur_workable_posits(self):
         """The workable positions for the current word"""
 
+        if self.cur_word is None:
+            return None
+
         # Calculate avaliable positions if we haven't already
         if self.cur_word not in self.all_workable_posits:
             cur_workable_posits = [
@@ -374,6 +377,9 @@ class Generator:
         # The generation was cancelled
         if self.halted:
             return None
+
+        # The generation completed, so now wwe signal a stop
+        self.halted = True
 
         # Swap the X and Y axes for display
         return np.rot90(np.fliplr(self.table))
