@@ -20,6 +20,8 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 S.D.G."""
 
 
+from threading import Thread
+
 from algorithm import (
     Generator,
     ALL_CHARS,
@@ -38,6 +40,7 @@ class GUICommon:
         word_intersect_bias = "Word intersections bias:"
         word_entry_default = "Delete this text, then enter one word per line."
         gen_button = "Generate"
+        cancel_button = "Cancel"
         copypuzz_button = "Copy puzzle"
         copykey_button = "Copy key"
 
@@ -49,6 +52,12 @@ class GUICommon:
 
         # The generator object we will reuse
         self.generator = Generator(self.progress_update)
+
+        # The operation Thread
+        self.thread = None
+
+        # Wether or not the GUI is running a thread operation now
+        self.__gui_op_running = False
 
         # The last used word list
         self.last_used_words = []
@@ -97,14 +106,22 @@ class GUICommon:
         raise NotImplementedError
 
     @property
-    def gen_button_able(self) -> bool:
+    def gen_cancel_button_able(self) -> bool:
         """Is the generate button enabled?"""
         raise NotImplementedError
 
-    @gen_button_able.setter
-    def gen_button_able(self, state: bool):
+    @gen_cancel_button_able.setter
+    def gen_cancel_button_able(self, state: bool):
         """Enable or disable the generate button"""
         raise NotImplementedError
+
+    def configure_gen_cancel_button(self):
+        """Turn the generate button into a cancel button or back appropriately"""
+        raise NotImplementedError
+
+    def cancel_operation(self):
+        """Abort the running generation"""
+        self.generator.halted = True
 
     @property
     def current_words(self) -> str:
@@ -122,7 +139,7 @@ class GUICommon:
     def on_input_text_changed(self):
         """What to do when the user edits the input text"""
         self.format_input_text()
-        self.regulate_gen_button()
+        self.regulate_gen_cancel_button()
         self.regulate_result_buttons()
 
     def format_input_text(self):
@@ -149,20 +166,27 @@ class GUICommon:
 
         self.words_entry_raw = new_text
 
-    def regulate_gen_button(self):
+    def regulate_gen_cancel_button(self):
         """Set the state of the go button appropriately"""
-        self.gen_button_able = bool(self.current_words)
+        self.gen_cancel_button_able = bool(self.current_words) or self.gui_op_running
+        self.configure_gen_cancel_button()
 
     def regulate_result_buttons(self):
         """Set the state of the result buttons appropriately"""
 
         # Enable the result buttons if we have a puzzle to copy,
         # and the entered words have not changed
-        self.result_buttons_able = self.puzz_table is not None
+        # and we are not running an operation
+        self.result_buttons_able = self.puzz_table is not None and not self.gui_op_running
 
     def generate_puzzle(self):
-        """Generate a puzzle from the input words"""
+        """Generate a puzzle from the input words (threaded)"""
+        self.thread = Thread(target=self.__generate_puzzle, daemon=True)
+        self.thread.start()
 
+    def __generate_puzzle(self):
+        """Generate a puzzle from the input words"""
+        self.gui_op_running = True
         self.puzz_table = self.generator.gen_word_search(
             self.current_words,
             directions=self.directions,
@@ -170,8 +194,30 @@ class GUICommon:
             intersect_bias=self.intersect_bias
             )
         self.last_used_words = self.current_words
+        self.gui_op_running = False
 
         self.regulate_result_buttons()
+
+    @property
+    def gui_op_running(self) -> bool:
+        """Is the GUI currently running an operation?"""
+        return self.__gui_op_running
+
+    @gui_op_running.setter
+    def gui_op_running(self, new: bool):
+        """Set if the GUI is currently running an operation"""
+        # Don't change anything if this is the status quo
+        if new == self.__gui_op_running:
+            return
+
+        self.__gui_op_running = new
+        self.update_gui_able()
+        self.regulate_gen_cancel_button()
+        self.regulate_result_buttons()
+
+    def update_gui_able(self):
+        """Configure the GUI based on self.gui_op_running"""
+        raise NotImplementedError
 
     @property
     def puzzle(self) -> str:
