@@ -13,14 +13,12 @@ later version.
 This program is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE. See the GNU General Public License for more details.
-
+I could some redefining stuff, but I'm not sure.
 You should have received a copy of the GNU General Public License along with
 this program. If not, see <https://www.gnu.org/licenses/>.
 
 S.D.G."""
 
-
-from threading import Thread
 
 from algorithm import (
     Generator,
@@ -184,10 +182,9 @@ class GUICommon:
 
     def generate_puzzle(self):
         """Generate a puzzle from the input words (threaded)"""
-        self.thread = Thread(target=self.__generate_puzzle, daemon=True)
-        self.thread.start()
+        raise NotImplementedError
 
-    def __generate_puzzle(self):
+    def _generate_puzzle(self):
         """Generate a puzzle from the input words"""
         self.gui_op_running = True
         self.puzz_table = self.generator.gen_word_search(

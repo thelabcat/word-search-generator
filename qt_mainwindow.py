@@ -20,7 +20,7 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 S.D.G."""
 
 import sys
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Slot, QMutex, QThread
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
@@ -54,6 +54,8 @@ class QtWindow(QWidget, GUICommon):
         GUICommon.__init__(self)
 
         self.clipboard = QApplication.clipboard()
+        self.mutex = QMutex()
+
         self.__intersect_bias = INTERSECT_BIASES[INTERSECT_BIAS_DEFAULT]
         self.build()
 
@@ -140,7 +142,9 @@ class QtWindow(QWidget, GUICommon):
 
     def progress_update(self):
         """Do progress updates on the generation"""
+        self.mutex.lock()
         print(self.generator.index)
+        self.mutex.unlock()
 
     @property
     def result_buttons_able(self) -> bool:
@@ -169,7 +173,14 @@ class QtWindow(QWidget, GUICommon):
         """Enable or disable the generate button"""
         if not hasattr(self, "gen_cancel_button"):
             return
+        self.mutex.lock()
         self.gen_cancel_button.setEnabled(state)
+        self.mutex.unlock()
+
+    @Slot()
+    def on_gen_cancel_button_click(self):
+        """Start or abort generation"""
+        GUICommon.on_gen_cancel_button_click(self)
 
     def update_intersect_bias(self):
         """Set the current bias from the radiobuttons"""
@@ -179,8 +190,10 @@ class QtWindow(QWidget, GUICommon):
 
     def update_gui_able(self):
         """Configure the GUI based on self.gui_op_running"""
+        self.mutex.lock()
         for widget in self.busy_disable_widgets:
             widget.setEnabled(not self.gui_op_running)
+        self.mutex.unlock()
 
     def configure_gen_cancel_button(self):
         """
@@ -190,20 +203,18 @@ class QtWindow(QWidget, GUICommon):
         if not hasattr(self, "gen_cancel_button"):
             return
 
+        self.mutex.lock()
         if self.gui_op_running:
             self.gen_cancel_button.setText(GUICommon.Lang.cancel_button)
         else:
             self.gen_cancel_button.setText(GUICommon.Lang.gen_button)
+        self.mutex.unlock()
 
     @Slot()
-    def slot_cancel_operation(self):
-        """Qt Slot cancel_operation()"""
-        self.cancel_operation()
-
-    @Slot()
-    def slot_generate_puzzle(self):
-        """Qt Slot generate_puzzle()"""
-        self.generate_puzzle()
+    def generate_puzzle(self):
+        """Generate a puzzle from the input words (threaded)"""
+        self.thread = PuzzGenThread(self)
+        self.thread.start()
 
     @property
     def use_hard(self):
@@ -225,6 +236,24 @@ class QtWindow(QWidget, GUICommon):
         """The raw entry in the text area"""
         self.entry_w.clear()
         self.entry_w.appendPlainText(new)
+
+
+class PuzzGenThread(QThread):
+    """Run puzzle generation in a Qt thread"""
+
+    def __init__(self, parent: QtWindow):
+        """
+        Run puzzle generation in a Qt thread
+
+        Args:
+            parent (QtWindow): The parent window
+        """
+        super().__init__(parent)
+        self.parent = parent
+
+    def run(self):
+        """The threaded code"""
+        self.parent._generate_puzzle()
 
 
 def main():
