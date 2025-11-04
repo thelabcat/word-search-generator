@@ -31,6 +31,7 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QVBoxLayout,
     QPlainTextEdit,
+    QProgressBar,
     QPushButton,
     )
 
@@ -115,6 +116,9 @@ class QtWindow(QWidget, GUICommon):
         self.words_entry_raw = GUICommon.Lang.word_entry_default
         self.busy_disable_widgets.append(self.entry_w)
 
+        # The progress bar
+        self.progress_bar = QProgressBar()
+
         # The generate button
         self.gen_cancel_button = QPushButton(GUICommon.Lang.gen_button)
         self.gen_cancel_button.clicked.connect(self.on_gen_cancel_button_click)
@@ -135,6 +139,7 @@ class QtWindow(QWidget, GUICommon):
         self.main_layout.addLayout(self.sf_layout)
         self.main_layout.addLayout(self.bias_layout)
         self.main_layout.addWidget(self.entry_w, stretch=1)
+        self.main_layout.addWidget(self.progress_bar)
         self.main_layout.addWidget(self.gen_cancel_button)
         self.main_layout.addLayout(self.resultbuttons_layout)
 
@@ -143,7 +148,7 @@ class QtWindow(QWidget, GUICommon):
     def progress_update(self):
         """Do progress updates on the generation"""
         self.mutex.lock()
-        print(self.generator.index)
+        self.progress_bar.setValue(self.generator.index)
         self.mutex.unlock()
 
     @property
@@ -213,6 +218,7 @@ class QtWindow(QWidget, GUICommon):
     @Slot()
     def generate_puzzle(self):
         """Generate a puzzle from the input words (threaded)"""
+        self.progress_bar.setMaximum(len(self.current_words))
         self.thread = PuzzGenThread(self)
         self.thread.start()
 
