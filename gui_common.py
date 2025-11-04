@@ -117,6 +117,14 @@ class GUICommon:
         """Visually turn the generate button into a cancel button or back appropriately"""
         raise NotImplementedError
 
+    def update_gui_able(self):
+        """Configure the GUI based on self.gui_op_running"""
+        raise NotImplementedError
+
+    def generate_puzzle(self):
+        """Generate a puzzle from the input words (threaded)"""
+        raise NotImplementedError
+
     def on_gen_cancel_button_click(self):
         """Start or abort generation"""
         if self.gui_op_running:
@@ -180,10 +188,6 @@ class GUICommon:
         # and we are not running an operation
         self.result_buttons_able = self.puzz_table is not None and not self.gui_op_running
 
-    def generate_puzzle(self):
-        """Generate a puzzle from the input words (threaded)"""
-        raise NotImplementedError
-
     def _generate_puzzle(self):
         """Generate a puzzle from the input words"""
         self.gui_op_running = True
@@ -214,10 +218,6 @@ class GUICommon:
         self.update_gui_able()
         self.regulate_gen_cancel_button()
         self.regulate_result_buttons()
-
-    def update_gui_able(self):
-        """Configure the GUI based on self.gui_op_running"""
-        raise NotImplementedError
 
     @property
     def puzzle(self) -> str:
