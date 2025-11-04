@@ -116,12 +116,15 @@ class GUICommon:
         raise NotImplementedError
 
     def configure_gen_cancel_button(self):
-        """Turn the generate button into a cancel button or back appropriately"""
+        """Visually turn the generate button into a cancel button or back appropriately"""
         raise NotImplementedError
 
-    def cancel_operation(self):
-        """Abort the running generation"""
-        self.generator.halted = True
+    def on_gen_cancel_button_click(self):
+        """Start or abort generation"""
+        if self.gui_op_running:
+            self.generator.halted = True
+        else:
+            self.generate_puzzle()
 
     @property
     def current_words(self) -> str:

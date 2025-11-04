@@ -115,7 +115,7 @@ class QtWindow(QWidget, GUICommon):
 
         # The generate button
         self.gen_cancel_button = QPushButton(GUICommon.Lang.gen_button)
-        self.regulate_gen_cancel_button()
+        self.gen_cancel_button.clicked.connect(self.on_gen_cancel_button_click)
 
         # The result copying buttons
         self.copypuzz_button = QPushButton(GUICommon.Lang.copypuzz_button)
@@ -182,24 +182,17 @@ class QtWindow(QWidget, GUICommon):
         for widget in self.busy_disable_widgets:
             widget.setEnabled(not self.gui_op_running)
 
-    def configure_gen_cancel_button(self, first_time: bool = False):
+    def configure_gen_cancel_button(self):
         """
-        Turn the generate button into a cancel button or back appropriately
-
-        Args:
-            first_time (bool): Skip disconnecting a previous signal handler?"""
+        Visually turn the generate button into a cancel button or back appropriately
+        """
 
         if not hasattr(self, "gen_cancel_button"):
             return
 
-        if first_time:
-            self.gen_cancel_button.disconnect()
-
         if self.gui_op_running:
-            self.gen_cancel_button.clicked.connect(self.slot_cancel_operation)
             self.gen_cancel_button.setText(GUICommon.Lang.cancel_button)
         else:
-            self.gen_cancel_button.clicked.connect(self.slot_generate_puzzle)
             self.gen_cancel_button.setText(GUICommon.Lang.gen_button)
 
     @Slot()
