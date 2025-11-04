@@ -20,6 +20,7 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 S.D.G."""
 
 import sys
+from PySide6.QtCore import Slot
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
@@ -68,14 +69,19 @@ class QtWindow(QWidget, GUICommon):
     def build(self):
         """Construct the GUI"""
 
+        # Widgets to disable when we are busy
+        self.busy_disable_widgets = []
+
         # Wether or not to use hard directions
         self.use_hard_w = QCheckBox(GUICommon.Lang.use_hard)
         self.use_hard_w.setChecked(True)
+        self.busy_disable_widgets.append(self.use_hard_w)
 
         # The size factor control
         self.sf_spinbox = QSpinBox()
         self.sf_spinbox.setRange(*SIZE_FAC_RANGE)
         self.sf_spinbox.setValue(SIZE_FAC_DEFAULT)
+        self.busy_disable_widgets.append(self.sf_spinbox)
 
         self.sf_label = QLabel(GUICommon.Lang.size_factor)
         self.sf_label.setBuddy(self.sf_spinbox)
@@ -95,6 +101,7 @@ class QtWindow(QWidget, GUICommon):
             if bias_name == INTERSECT_BIAS_DEFAULT:
                 widget.setChecked(True)
             self.bias_ops_layout.addWidget(widget)
+            self.busy_disable_widgets.append(widget)
 
         self.bias_layout = QVBoxLayout()
         self.bias_layout.addWidget(self.bias_label)
@@ -104,11 +111,11 @@ class QtWindow(QWidget, GUICommon):
         self.entry_w = QPlainTextEdit()
         self.entry_w.textChanged.connect(self.on_input_text_changed)
         self.words_entry_raw = GUICommon.Lang.word_entry_default
+        self.busy_disable_widgets.append(self.entry_w)
 
         # The generate button
-        self.gen_button = QPushButton(GUICommon.Lang.gen_button)
-        self.gen_button.clicked.connect(self.generate_puzzle)
-        self.regulate_gen_button()
+        self.gen_cancel_button = QPushButton(GUICommon.Lang.gen_button)
+        self.regulate_gen_cancel_button()
 
         # The result copying buttons
         self.copypuzz_button = QPushButton(GUICommon.Lang.copypuzz_button)
@@ -126,10 +133,14 @@ class QtWindow(QWidget, GUICommon):
         self.main_layout.addLayout(self.sf_layout)
         self.main_layout.addLayout(self.bias_layout)
         self.main_layout.addWidget(self.entry_w, stretch=1)
-        self.main_layout.addWidget(self.gen_button)
+        self.main_layout.addWidget(self.gen_cancel_button)
         self.main_layout.addLayout(self.resultbuttons_layout)
 
         self.setWindowTitle(GUICommon.Lang.window_title)
+
+    def progress_update(self):
+        """Do progress updates on the generation"""
+        print(self.generator.index)
 
     @property
     def result_buttons_able(self) -> bool:
@@ -149,22 +160,57 @@ class QtWindow(QWidget, GUICommon):
         self.copykey_button.setEnabled(state)
 
     @property
-    def gen_button_able(self) -> bool:
+    def gen_cancel_button_able(self) -> bool:
         """Is the generate button enabled?"""
-        return hasattr(self, "gen_button") and self.gen_button.isEnabled()
+        return hasattr(self, "gen_cancel_button") and self.gen_cancel_button.isEnabled()
 
-    @gen_button_able.setter
-    def gen_button_able(self, state: bool):
+    @gen_cancel_button_able.setter
+    def gen_cancel_button_able(self, state: bool):
         """Enable or disable the generate button"""
-        if not hasattr(self, "gen_button"):
+        if not hasattr(self, "gen_cancel_button"):
             return
-        self.gen_button.setEnabled(state)
+        self.gen_cancel_button.setEnabled(state)
 
     def update_intersect_bias(self):
         """Set the current bias from the radiobuttons"""
         radiobutton = self.sender()
         if radiobutton.isChecked:
             self.__intersect_bias = self.sender().bias_value
+
+    def update_gui_able(self):
+        """Configure the GUI based on self.gui_op_running"""
+        for widget in self.busy_disable_widgets:
+            widget.setEnabled(not self.gui_op_running)
+
+    def configure_gen_cancel_button(self, first_time: bool = False):
+        """
+        Turn the generate button into a cancel button or back appropriately
+
+        Args:
+            first_time (bool): Skip disconnecting a previous signal handler?"""
+
+        if not hasattr(self, "gen_cancel_button"):
+            return
+
+        if first_time:
+            self.gen_cancel_button.disconnect()
+
+        if self.gui_op_running:
+            self.gen_cancel_button.clicked.connect(self.slot_cancel_operation)
+            self.gen_cancel_button.setText(GUICommon.Lang.cancel_button)
+        else:
+            self.gen_cancel_button.clicked.connect(self.slot_generate_puzzle)
+            self.gen_cancel_button.setText(GUICommon.Lang.gen_button)
+
+    @Slot()
+    def slot_cancel_operation(self):
+        """Qt Slot cancel_operation()"""
+        self.cancel_operation()
+
+    @Slot()
+    def slot_generate_puzzle(self):
+        """Qt Slot generate_puzzle()"""
+        self.generate_puzzle()
 
     @property
     def use_hard(self):
