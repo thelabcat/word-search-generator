@@ -38,9 +38,6 @@ from PySide6.QtWidgets import (
 from algorithm import INTERSECT_BIASES
 from gui_common import GUICommon
 
-# Size factor options
-SIZE_FAC_RANGE = 1, 99
-
 
 class QtWindow(QWidget, GUICommon):
     """The Qt superwidget"""
@@ -77,7 +74,7 @@ class QtWindow(QWidget, GUICommon):
 
         # The size factor control
         self.sf_spinbox = QSpinBox()
-        self.sf_spinbox.setRange(*SIZE_FAC_RANGE)
+        self.sf_spinbox.setRange(*GUICommon.size_fac_range)
         self.sf_spinbox.setValue(GUICommon.Defaults.size_fac)
         self.busy_disable_widgets.append(self.sf_spinbox)
 

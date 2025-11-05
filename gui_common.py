@@ -33,6 +33,9 @@ from algorithm import (
 class GUICommon:
     """Common stuff between the GUIs"""
 
+    # The range of size factor options
+    size_fac_range = 1, 99
+
     class Defaults:
         """GUI control defaults"""
         use_hard = False

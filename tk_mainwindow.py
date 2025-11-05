@@ -26,7 +26,9 @@ from tkinter import ttk
 from algorithm import INTERSECT_BIASES
 from gui_common import GUICommon
 
-TK_SIZE_FAC_OPTIONS = tuple(range(2, 10))
+TK_SIZE_FAC_OPTIONS = tuple(
+    range(GUICommon.size_fac_range[0], GUICommon.size_fac_range[1] + 1),
+    )
 PAD = 10  # Widget padding
 
 
@@ -45,7 +47,7 @@ class TkWindow(tk.Tk, GUICommon):
         self.__size_fac = tk.StringVar(self, GUICommon.Defaults.size_fac)
         self.__size_fac.trace_add(
             "write",
-            lambda *args: self.verify_size_fac()
+            lambda *args: self.verify_size_fac(allow_blank=True)
             )
         self.__intersect_bias = tk.IntVar(
             self,
@@ -89,6 +91,7 @@ class TkWindow(tk.Tk, GUICommon):
             textvariable=self.__size_fac
             )
         self.sf_spinbox.grid(row=0, column=1, sticky=tk.NSEW)
+        self.sf_spinbox.bind("<FocusOut>", lambda *args: self.verify_size_fac())
         self.busy_disable_widgets.append(self.sf_spinbox)
 
         # Resize size factor frame around the column with the spinbox.
@@ -165,8 +168,18 @@ class TkWindow(tk.Tk, GUICommon):
         # Resize horizontally
         self.columnconfigure(0, weight=1)
 
-    def verify_size_fac(self):
-        """Ensure that __size_fac is numbers only and not below 1"""
+    def verify_size_fac(self, allow_blank: bool = False):
+        """
+        Ensure that __size_fac is numbers only and not below 1
+
+        Args:
+            allow_blank (bool): Allow the entry field to be empty.
+                Defaults to False.
+        """
+
+        if not self.__size_fac.get() and allow_blank:
+            return
+
         self.__size_fac.set(
             max((
                 int(
