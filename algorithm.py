@@ -116,6 +116,16 @@ class Position:
 
         return xarray, yarray
 
+    def __eq__(self, other):
+        """
+        Is this position equal to another?
+
+        Args:
+            other (position): The position to compare to"""
+
+        assert isinstance(other, type(self)), "Cannot compare position to non-position"
+        return self.x, self.y, self.direction == other.x, other.y, other.direction
+
 
 class Generator:
     """Generate a word search puzzle"""
