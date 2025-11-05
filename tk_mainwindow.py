@@ -19,6 +19,7 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 
 S.D.G."""
 
+from threading import Thread
 import tkinter as tk
 from tkinter import ttk
 
@@ -54,34 +55,37 @@ class TkWindow(tk.Tk, GUICommon):
             self,
             INTERSECT_BIASES[INTERSECT_BIAS_DEFAULT]
             )
+        self.progress_bar_val = tk.DoubleVar(self, 0)
 
         self.build()
         self.mainloop()
 
-    @property
-    def use_hard(self) -> bool:
-        """Wether or not we are set to use hard directions"""
-        return self.__use_hard.get()
-
     def build(self):
         """Construct the GUI widgets"""
 
+        # Widgets to disable when we are busy
+        self.busy_disable_widgets = []
+
         # Checkbutton for using hard directions
-        ttk.Checkbutton(
+        hard_checkbutton = ttk.Checkbutton(
             self,
             text=GUICommon.Lang.use_hard,
             variable=self.__use_hard
-            ).grid(row=0, sticky=tk.NSEW, padx=PAD, pady=(PAD, 0))
+            )
+        hard_checkbutton.grid(row=0, sticky=tk.NSEW, padx=PAD, pady=(PAD, 0))
+        self.busy_disable_widgets.append(hard_checkbutton)
 
         # Number area for size_fac
         self.sf_frame = ttk.Frame(self)
         self.sf_frame.grid(row=1, sticky=tk.NSEW, padx=PAD, pady=(PAD, 0))
 
-        ttk.Label(
+        l = ttk.Label(
             self.sf_frame,
             text=GUICommon.Lang.size_factor + " ",
             anchor=tk.E,
-            ).grid(row=0, column=0, sticky=tk.NSEW)
+            )
+        l.grid(row=0, column=0, sticky=tk.NSEW)
+        self.busy_disable_widgets.append(l)
 
         self.sf_spinbox = ttk.Spinbox(
             self.sf_frame,
@@ -89,6 +93,7 @@ class TkWindow(tk.Tk, GUICommon):
             textvariable=self.__size_fac
             )
         self.sf_spinbox.grid(row=0, column=1, sticky=tk.NSEW)
+        self.busy_disable_widgets.append(self.sf_spinbox)
 
         # Resize size factor frame around the column with the spinbox.
         self.sf_frame.columnconfigure(1, weight=1)
@@ -102,13 +107,15 @@ class TkWindow(tk.Tk, GUICommon):
         # Create radiobuttons for the three biases
         for i, bias_pair in enumerate(INTERSECT_BIASES.items()):
             bias_name, bias_value = bias_pair
-            ttk.Radiobutton(
+            rb = ttk.Radiobutton(
                 self.bias_frame,
                 text=bias_name.capitalize(),
                 variable=self.__intersect_bias,
                 value=bias_value
-                ).grid(row=1, column=i, sticky=tk.NSEW,
+                )
+            rb.grid(row=1, column=i, sticky=tk.NSEW,
                        padx=PAD//2, pady=PAD//2)
+            self.busy_disable_widgets.append(rb)
             self.bias_frame.columnconfigure(i, weight=1)
 
         # Entry area for the words, and a scrollbar
@@ -127,8 +134,7 @@ class TkWindow(tk.Tk, GUICommon):
 
         self.scrollbar.grid(row=0, column=1, sticky=tk.NSEW)
         self.text.grid(row=0, column=0, sticky=tk.NSEW)
-        self.words_entry_raw = GUICommon.Lang.word_entry_default
-        self.on_input_text_changed()
+        self.busy_disable_widgets.append(self.text)
 
         # Resize the entry frame around the text box
         self.entry_frame.rowconfigure(0, weight=1)
@@ -137,14 +143,21 @@ class TkWindow(tk.Tk, GUICommon):
         # Resize the GUI about the entry frame
         self.rowconfigure(3, weight=1)
 
+        # Progress bar
+        self.progress_bar = ttk.Progressbar(self, variable=self.progress_bar_val)
+        self.progress_bar.grid(row=4, sticky=tk.NSEW, padx=PAD, pady=(PAD//2, 0))
+
         # Go button
-        self.gen_button = ttk.Button(self, text=GUICommon.Lang.gen_button, command=self.generate_puzzle)
-        self.gen_button.grid(row=4, sticky=tk.NSEW, padx=PAD, pady=(PAD//2, 0))
-        self.regulate_gen_button()
+        self.gen_cancel_button = ttk.Button(self, text=GUICommon.Lang.gen_button, command=self.on_gen_cancel_button_click)
+        self.gen_cancel_button.grid(row=5, sticky=tk.NSEW, padx=PAD, pady=(PAD//2, 0))
+
+        # We cannot do this until the gen/cancel button exists
+        self.words_entry_raw = GUICommon.Lang.word_entry_default
+        self.on_input_text_changed()
 
         # The result buttons
         self.resultbuttons_frame = ttk.Frame(self)
-        self.resultbuttons_frame.grid(row=5, sticky=tk.NSEW, padx=PAD, pady=(PAD//2, PAD))
+        self.resultbuttons_frame.grid(row=6, sticky=tk.NSEW, padx=PAD, pady=(PAD//2, PAD))
         self.copypuzz_button = ttk.Button(self.resultbuttons_frame, text=GUICommon.Lang.copypuzz_button, command=self.copy_puzzle)
         self.copypuzz_button.grid(row=0, column=0, sticky=tk.NSEW, padx=(0, PAD/4))
         self.resultbuttons_frame.columnconfigure(0, weight=1)
@@ -170,6 +183,15 @@ class TkWindow(tk.Tk, GUICommon):
                 1,
                 )
             )
+
+    def progress_update(self):
+        """Update the GUI with progress of self.generator"""
+        self.progress_bar_val.set(self.generator.index)
+
+    @property
+    def use_hard(self) -> bool:
+        """Wether or not we are set to use hard directions"""
+        return self.__use_hard.get()
 
     @property
     def size_factor(self) -> int:
@@ -212,16 +234,35 @@ class TkWindow(tk.Tk, GUICommon):
             getattr(self, button).configure(state=(tk.DISABLED, tk.NORMAL)[state])
 
     @property
-    def gen_button_able(self) -> bool:
+    def gen_cancel_button_able(self) -> bool:
         """Is the generate button enabled?"""
-        return hasattr(self, "gen_button") and self.gen_button["state"] != tk.DISABLED
+        return hasattr(self, "gen_cancel_button") and self.gen_cancel_button["state"] != tk.DISABLED
 
-    @gen_button_able.setter
-    def gen_button_able(self, state: bool):
+    @gen_cancel_button_able.setter
+    def gen_cancel_button_able(self, state: bool):
         """Enable or disable the generate button"""
-        if not hasattr(self, "gen_button"):
+        if not hasattr(self, "gen_cancel_button"):
             return
-        self.gen_button.config(state=(tk.DISABLED, tk.NORMAL)[state])
+        self.gen_cancel_button.config(state=(tk.DISABLED, tk.NORMAL)[state])
+
+    def configure_gen_cancel_button(self):
+        """Visually turn the generate button into a cancel button or back appropriately"""
+        self.gen_cancel_button.configure(
+            text=(
+                GUICommon.Lang.gen_button,
+                GUICommon.Lang.cancel_button,
+                )[self.gui_op_running])
+
+    def update_gui_able(self):
+        """Configure the GUI based on self.gui_op_running"""
+        for widget in self.busy_disable_widgets:
+            widget.configure(state=(tk.NORMAL, tk.DISABLED)[self.gui_op_running])
+
+    def generate_puzzle(self):
+        """Generate a puzzle from the input words (threaded)"""
+        self.progress_bar.configure(maximum=len(self.current_words))
+        self.thread = Thread(target=self._generate_puzzle, daemon=True)
+        self.thread.start()
 
 
 def main():
