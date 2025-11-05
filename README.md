@@ -46,9 +46,9 @@ For now, wether using the new Qt GUI or the legacy Tkinter GUI, the features are
 
 3. Change the generator's settings as desired.
 
-4. Click "Generate", then wait. The program may "freeze" for several seconds, but should not disappear (a crash).
+4. Click "Generate", then wait for the algorithm to work. The "Generate" button should instantly change to "Cancel", and the progress bar will show how many words have been placed so far. Note: This is not a true "progress" bar, as it will occasionally jump backwards if changes are reverted and new possibility branches are tried. This happens more often with greater word numbers and smaller size factors, as the program is less likely to find a working combination.
 
-5. Once the generation has finished, the "Generate" button will pop back up, and the two "Copy" buttons will un-grey.
+5. Once the generation has finished, the "Cancel" button will change back to "Generate", and the two "Copy" buttons will un-grey.
 
 6. Click "Copy puzzle". If using Tkinter or X11, do not close the main program window, as this will erase what it copied to the clipboard.
 
