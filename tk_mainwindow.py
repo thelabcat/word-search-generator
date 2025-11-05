@@ -23,11 +23,7 @@ from threading import Thread
 import tkinter as tk
 from tkinter import ttk
 
-from algorithm import (
-    SIZE_FAC_DEFAULT,
-    INTERSECT_BIASES,
-    INTERSECT_BIAS_DEFAULT,
-    )
+from algorithm import INTERSECT_BIASES
 from gui_common import GUICommon
 
 TK_SIZE_FAC_OPTIONS = tuple(range(2, 10))
@@ -45,15 +41,15 @@ class TkWindow(tk.Tk, GUICommon):
         self.title(GUICommon.Lang.window_title)
 
         # Tkinter variables
-        self.__use_hard = tk.BooleanVar(self, True)
-        self.__size_fac = tk.StringVar(self, SIZE_FAC_DEFAULT)
+        self.__use_hard = tk.BooleanVar(self, GUICommon.Defaults.use_hard)
+        self.__size_fac = tk.StringVar(self, GUICommon.Defaults.size_fac)
         self.__size_fac.trace_add(
             "write",
             lambda *args: self.verify_size_fac()
             )
         self.__intersect_bias = tk.IntVar(
             self,
-            INTERSECT_BIASES[INTERSECT_BIAS_DEFAULT]
+            INTERSECT_BIASES[GUICommon.Defaults.intersect_bias]
             )
         self.progress_bar_val = tk.DoubleVar(self, 0)
 
@@ -114,7 +110,7 @@ class TkWindow(tk.Tk, GUICommon):
                 value=bias_value
                 )
             rb.grid(row=1, column=i, sticky=tk.NSEW,
-                       padx=PAD//2, pady=PAD//2)
+                    padx=PAD//2, pady=PAD//2)
             self.busy_disable_widgets.append(rb)
             self.bias_frame.columnconfigure(i, weight=1)
 
@@ -152,7 +148,7 @@ class TkWindow(tk.Tk, GUICommon):
         self.gen_cancel_button.grid(row=5, sticky=tk.NSEW, padx=PAD, pady=(PAD//2, 0))
 
         # We cannot do this until the gen/cancel button exists
-        self.words_entry_raw = GUICommon.Lang.word_entry_default
+        self.words_entry_raw = GUICommon.Defaults.word_entry
         self.on_input_text_changed()
 
         # The result buttons

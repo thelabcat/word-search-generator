@@ -25,18 +25,27 @@ from algorithm import (
     ALL_CHARS,
     DIRECTIONS,
     EASY_DIRECTIONS,
+    SIZE_FAC_DEFAULT,
+    INTERSECT_BIAS_DEFAULT,
     )
 
 
 class GUICommon:
     """Common stuff between the GUIs"""
+
+    class Defaults:
+        """GUI control defaults"""
+        use_hard = False
+        size_fac = SIZE_FAC_DEFAULT
+        intersect_bias = INTERSECT_BIAS_DEFAULT
+        word_entry = "Delete this text, then enter one word per line."
+
     class Lang:
         """Labels for stuff"""
         window_title = "Word Search Gen"
         use_hard = "Use backwards directions"
         size_factor = "Size factor:"
         word_intersect_bias = "Word intersections bias:"
-        word_entry_default = "Delete this text, then enter one word per line."
         gen_button = "Generate"
         cancel_button = "Cancel"
         copypuzz_button = "Copy puzzle"

@@ -35,11 +35,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     )
 
-from algorithm import (
-    SIZE_FAC_DEFAULT,
-    INTERSECT_BIASES,
-    INTERSECT_BIAS_DEFAULT,
-    )
+from algorithm import INTERSECT_BIASES
 from gui_common import GUICommon
 
 # Size factor options
@@ -56,7 +52,7 @@ class QtWindow(QWidget, GUICommon):
 
         self.clipboard = QApplication.clipboard()
 
-        self.__intersect_bias = INTERSECT_BIASES[INTERSECT_BIAS_DEFAULT]
+        self.__intersect_bias = INTERSECT_BIASES[GUICommon.Defaults.intersect_bias]
         self.build()
 
     def copy_to_clipboard(self, text: str):
@@ -76,13 +72,13 @@ class QtWindow(QWidget, GUICommon):
 
         # Wether or not to use hard directions
         self.use_hard_w = QCheckBox(GUICommon.Lang.use_hard)
-        self.use_hard_w.setChecked(True)
+        self.use_hard_w.setChecked(GUICommon.Defaults.use_hard)
         self.busy_disable_widgets.append(self.use_hard_w)
 
         # The size factor control
         self.sf_spinbox = QSpinBox()
         self.sf_spinbox.setRange(*SIZE_FAC_RANGE)
-        self.sf_spinbox.setValue(SIZE_FAC_DEFAULT)
+        self.sf_spinbox.setValue(GUICommon.Defaults.size_fac)
         self.busy_disable_widgets.append(self.sf_spinbox)
 
         self.sf_label = QLabel(GUICommon.Lang.size_factor)
@@ -100,7 +96,7 @@ class QtWindow(QWidget, GUICommon):
             widget = QRadioButton(bias_name.capitalize())
             widget.bias_value = bias_value
             widget.toggled.connect(self.update_intersect_bias)
-            if bias_name == INTERSECT_BIAS_DEFAULT:
+            if bias_name == GUICommon.Defaults.intersect_bias:
                 widget.setChecked(True)
             self.bias_ops_layout.addWidget(widget)
             self.busy_disable_widgets.append(widget)
@@ -112,7 +108,6 @@ class QtWindow(QWidget, GUICommon):
         # The text area
         self.entry_w = QPlainTextEdit()
         self.entry_w.textChanged.connect(self.on_input_text_changed)
-        self.words_entry_raw = GUICommon.Lang.word_entry_default
         self.busy_disable_widgets.append(self.entry_w)
 
         # The progress bar
@@ -131,6 +126,9 @@ class QtWindow(QWidget, GUICommon):
         self.resultbuttons_layout.addWidget(self.copypuzz_button)
         self.resultbuttons_layout.addWidget(self.copykey_button)
         self.regulate_result_buttons()
+
+        # We cannot do this until the generate and copy buttons exist
+        self.words_entry_raw = GUICommon.Defaults.word_entry
 
         # The overall layout
         self.main_layout = QVBoxLayout(self)
@@ -156,30 +154,22 @@ class QtWindow(QWidget, GUICommon):
     @property
     def result_buttons_able(self) -> bool:
         """Are the result buttons enabled?"""
-        return hasattr(self, "copypuzz_button") \
-            and self.copypuzz_button.isEnabled()
+        return self.copypuzz_button.isEnabled()
 
     @result_buttons_able.setter
     def result_buttons_able(self, state: bool):
         """Enable or disable the result buttons"""
-        if not (
-                hasattr(self, "copypuzz_button") and
-                hasattr(self, "copykey_button")
-                ):
-            return
         self.copypuzz_button.setEnabled(state)
         self.copykey_button.setEnabled(state)
 
     @property
     def gen_cancel_button_able(self) -> bool:
         """Is the generate button enabled?"""
-        return hasattr(self, "gen_cancel_button") and self.gen_cancel_button.isEnabled()
+        return self.gen_cancel_button.isEnabled()
 
     @gen_cancel_button_able.setter
     def gen_cancel_button_able(self, state: bool):
         """Enable or disable the generate button (thread-safe)"""
-        if not hasattr(self, "gen_cancel_button"):
-            return
         method = ("_gen_cancel_button_disable", "_gen_cancel_button_enable")[state]
         QMetaObject.invokeMethod(self, method)
 
@@ -225,9 +215,6 @@ class QtWindow(QWidget, GUICommon):
         """
         Visually turn the generate button into a cancel button or back appropriately (slot)
         """
-
-        if not hasattr(self, "gen_cancel_button"):
-            return
 
         if self.gui_op_running:
             self.gen_cancel_button.setText(GUICommon.Lang.cancel_button)
