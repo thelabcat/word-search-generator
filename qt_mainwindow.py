@@ -20,7 +20,7 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 S.D.G."""
 
 import sys
-from PySide6.QtCore import Slot, QMutex, QThread
+from PySide6.QtCore import Slot, QThread, QMetaObject
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
@@ -55,7 +55,6 @@ class QtWindow(QWidget, GUICommon):
         GUICommon.__init__(self)
 
         self.clipboard = QApplication.clipboard()
-        self.mutex = QMutex()
 
         self.__intersect_bias = INTERSECT_BIASES[INTERSECT_BIAS_DEFAULT]
         self.build()
@@ -146,10 +145,13 @@ class QtWindow(QWidget, GUICommon):
         self.setWindowTitle(GUICommon.Lang.window_title)
 
     def progress_update(self):
-        """Do progress updates on the generation"""
-        self.mutex.lock()
+        """Do progress updates on the generation (thread-safe)"""
+        QMetaObject.invokeMethod(self, "_progress_update")
+
+    @Slot()
+    def _progress_update(self):
+        """Do progress updates on the generation (slot)"""
         self.progress_bar.setValue(self.generator.index)
-        self.mutex.unlock()
 
     @property
     def result_buttons_able(self) -> bool:
@@ -175,12 +177,21 @@ class QtWindow(QWidget, GUICommon):
 
     @gen_cancel_button_able.setter
     def gen_cancel_button_able(self, state: bool):
-        """Enable or disable the generate button"""
+        """Enable or disable the generate button (thread-safe)"""
         if not hasattr(self, "gen_cancel_button"):
             return
-        self.mutex.lock()
-        self.gen_cancel_button.setEnabled(state)
-        self.mutex.unlock()
+        method = ("_gen_cancel_button_disable", "_gen_cancel_button_enable")[state]
+        QMetaObject.invokeMethod(self, method)
+
+    @Slot()
+    def _gen_cancel_button_disable(self):
+        """Disable the generate/cancel button"""
+        self.gen_cancel_button.setEnabled(False)
+
+    @Slot()
+    def _gen_cancel_button_enable(self):
+        """Enable the generate/cancel button"""
+        self.gen_cancel_button.setEnabled(True)
 
     @Slot()
     def on_gen_cancel_button_click(self):
@@ -194,26 +205,34 @@ class QtWindow(QWidget, GUICommon):
             self.__intersect_bias = self.sender().bias_value
 
     def update_gui_able(self):
-        """Configure the GUI based on self.gui_op_running"""
-        self.mutex.lock()
+        """Configure the GUI based on self.gui_op_running (thread-safe)"""
+        QMetaObject.invokeMethod(self, "_update_gui_able")
+
+    @Slot()
+    def _update_gui_able(self):
+        """Configure the GUI based on self.gui_op_running (slot)"""
         for widget in self.busy_disable_widgets:
             widget.setEnabled(not self.gui_op_running)
-        self.mutex.unlock()
 
     def configure_gen_cancel_button(self):
         """
-        Visually turn the generate button into a cancel button or back appropriately
+        Visually turn the generate button into a cancel button or back appropriately (thread-safe)
+        """
+        QMetaObject.invokeMethod(self, "_configure_gen_cancel_button")
+
+    @Slot()
+    def _configure_gen_cancel_button(self):
+        """
+        Visually turn the generate button into a cancel button or back appropriately (slot)
         """
 
         if not hasattr(self, "gen_cancel_button"):
             return
 
-        self.mutex.lock()
         if self.gui_op_running:
             self.gen_cancel_button.setText(GUICommon.Lang.cancel_button)
         else:
             self.gen_cancel_button.setText(GUICommon.Lang.gen_button)
-        self.mutex.unlock()
 
     @Slot()
     def generate_puzzle(self):
