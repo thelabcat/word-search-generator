@@ -74,40 +74,40 @@ class TkWindow(tk.Tk, GUICommon):
         self.busy_disable_widgets.append(hard_checkbutton)
 
         # Number area for size_fac
-        self.sf_frame = ttk.Frame(self)
-        self.sf_frame.grid(row=1, sticky=tk.NSEW, padx=PAD, pady=(PAD, 0))
+        sf_frame = ttk.Frame(self)
+        sf_frame.grid(row=1, sticky=tk.NSEW, padx=PAD, pady=(PAD, 0))
 
-        l = ttk.Label(
-            self.sf_frame,
+        sf_label = ttk.Label(
+            sf_frame,
             text=GUICommon.Lang.size_factor + " ",
             anchor=tk.E,
             )
-        l.grid(row=0, column=0, sticky=tk.NSEW)
-        self.busy_disable_widgets.append(l)
+        sf_label.grid(row=0, column=0, sticky=tk.NSEW)
+        self.busy_disable_widgets.append(sf_label)
 
-        self.sf_spinbox = ttk.Spinbox(
-            self.sf_frame,
+        sf_spinbox = ttk.Spinbox(
+            sf_frame,
             values=TK_SIZE_FAC_OPTIONS,
             textvariable=self.__size_fac
             )
-        self.sf_spinbox.grid(row=0, column=1, sticky=tk.NSEW)
-        self.sf_spinbox.bind("<FocusOut>", lambda *args: self.verify_size_fac())
-        self.busy_disable_widgets.append(self.sf_spinbox)
+        sf_spinbox.grid(row=0, column=1, sticky=tk.NSEW)
+        sf_spinbox.bind("<FocusOut>", lambda *args: self.verify_size_fac())
+        self.busy_disable_widgets.append(sf_spinbox)
 
         # Resize size factor frame around the column with the spinbox.
-        self.sf_frame.columnconfigure(1, weight=1)
+        sf_frame.columnconfigure(1, weight=1)
 
         # Intersection bias chooser
-        self.bias_frame = ttk.Frame(self)
-        self.bias_frame.grid(row=2, sticky=tk.NSEW, padx=PAD//2, pady=(PAD, 0))
-        ttk.Label(self.bias_frame, text=GUICommon.Lang.word_intersect_bias)\
+        bias_frame = ttk.Frame(self)
+        bias_frame.grid(row=2, sticky=tk.NSEW, padx=PAD//2, pady=(PAD, 0))
+        ttk.Label(bias_frame, text=GUICommon.Lang.word_intersect_bias)\
             .grid(row=0, column=0, columnspan=3, sticky=tk.NSEW, padx=PAD//2)
 
         # Create radiobuttons for the three biases
         for i, bias_pair in enumerate(INTERSECT_BIASES.items()):
             bias_name, bias_value = bias_pair
             rb = ttk.Radiobutton(
-                self.bias_frame,
+                bias_frame,
                 text=bias_name.capitalize(),
                 variable=self.__intersect_bias,
                 value=bias_value
@@ -115,29 +115,29 @@ class TkWindow(tk.Tk, GUICommon):
             rb.grid(row=1, column=i, sticky=tk.NSEW,
                     padx=PAD//2, pady=PAD//2)
             self.busy_disable_widgets.append(rb)
-            self.bias_frame.columnconfigure(i, weight=1)
+            bias_frame.columnconfigure(i, weight=1)
 
         # Entry area for the words, and a scrollbar
-        self.entry_frame = ttk.Frame(self)
-        self.entry_frame.grid(row=3, sticky=tk.NSEW, padx=PAD)
-        self.text = tk.Text(self.entry_frame, width=30, height=10, wrap="word")
+        entry_frame = ttk.Frame(self)
+        entry_frame.grid(row=3, sticky=tk.NSEW, padx=PAD)
+        self.text = tk.Text(entry_frame, width=30, height=10, wrap="word")
         self.text.bind(
             "<KeyRelease>",
             lambda _: self.on_input_text_changed(),
             )
-        self.scrollbar = ttk.Scrollbar(self.entry_frame)
+        scrollbar = ttk.Scrollbar(entry_frame)
 
         # Connect scrollbar to text area
-        self.scrollbar["command"] = self.text.yview
-        self.text.configure(yscrollcommand=self.scrollbar.set)
+        scrollbar["command"] = self.text.yview
+        self.text.configure(yscrollcommand=scrollbar.set)
 
-        self.scrollbar.grid(row=0, column=1, sticky=tk.NSEW)
+        scrollbar.grid(row=0, column=1, sticky=tk.NSEW)
         self.text.grid(row=0, column=0, sticky=tk.NSEW)
         self.busy_disable_widgets.append(self.text)
 
         # Resize the entry frame around the text box
-        self.entry_frame.rowconfigure(0, weight=1)
-        self.entry_frame.columnconfigure(0, weight=1)
+        entry_frame.rowconfigure(0, weight=1)
+        entry_frame.columnconfigure(0, weight=1)
 
         # Resize the GUI about the entry frame
         self.rowconfigure(3, weight=1)
@@ -155,14 +155,14 @@ class TkWindow(tk.Tk, GUICommon):
         self.on_input_text_changed()
 
         # The result buttons
-        self.resultbuttons_frame = ttk.Frame(self)
-        self.resultbuttons_frame.grid(row=6, sticky=tk.NSEW, padx=PAD, pady=(PAD//2, PAD))
-        self.copypuzz_button = ttk.Button(self.resultbuttons_frame, text=GUICommon.Lang.copypuzz_button, command=self.copy_puzzle)
+        resultbuttons_frame = ttk.Frame(self)
+        resultbuttons_frame.grid(row=6, sticky=tk.NSEW, padx=PAD, pady=(PAD//2, PAD))
+        self.copypuzz_button = ttk.Button(resultbuttons_frame, text=GUICommon.Lang.copypuzz_button, command=self.copy_puzzle)
         self.copypuzz_button.grid(row=0, column=0, sticky=tk.NSEW, padx=(0, PAD/4))
-        self.resultbuttons_frame.columnconfigure(0, weight=1)
-        self.copykey_button = ttk.Button(self.resultbuttons_frame, text=GUICommon.Lang.copykey_button, command=self.copy_answer_key)
+        resultbuttons_frame.columnconfigure(0, weight=1)
+        self.copykey_button = ttk.Button(resultbuttons_frame, text=GUICommon.Lang.copykey_button, command=self.copy_answer_key)
         self.copykey_button.grid(row=0, column=1, sticky=tk.NSEW, padx=(PAD/4, 0))
-        self.resultbuttons_frame.columnconfigure(1, weight=1)
+        resultbuttons_frame.columnconfigure(1, weight=1)
         self.regulate_result_buttons()
 
         # Resize horizontally
