@@ -205,7 +205,7 @@ class TkWindow(tk.Tk, GUICommon):
     @property
     def size_factor(self) -> int:
         """Configure the size factor"""
-        return int(self.sf_spinbox.get())
+        return int(self.__size_fac.get())
 
     @property
     def intersect_bias(self) -> int:
