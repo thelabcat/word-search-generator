@@ -19,6 +19,7 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 
 S.D.G."""
 
+from queue import Queue
 from threading import Thread
 import tkinter as tk
 from tkinter import ttk
@@ -55,8 +56,12 @@ class TkWindow(tk.Tk, GUICommon):
             )
         self.progress_bar_val = tk.DoubleVar(self, 0)
 
+        # Thread exiting system for progress updates
+        self.progress_queue = Queue()
+
         self.build()
         self.status_ticker()
+        self.progress_ticker()
         self.mainloop()
 
     def build(self):
@@ -174,6 +179,22 @@ class TkWindow(tk.Tk, GUICommon):
         self.status_tick()
         self.after(int(GUICommon.status_tick_interval * 1000), self.status_ticker)
 
+    def progress_ticker(self):
+        """Update the progress bar from queued values"""
+
+        # Allow for no updates
+        val = None
+
+        # Do not fall behind
+        while not self.progress_queue.empty():
+            val = self.progress_queue.get()
+
+        # If we have an update, do it
+        if val is not None:
+            self.progress_bar_val.set(val)
+
+        self.after(1, self.progress_ticker)
+
     def verify_size_fac(self, allow_blank: bool = False):
         """
         Ensure that __size_fac is numbers only and not below 1
@@ -201,7 +222,7 @@ class TkWindow(tk.Tk, GUICommon):
 
     def progress_update(self):
         """Update the GUI with progress of self.generator"""
-        self.progress_bar_val.set(self.generator.index)
+        self.progress_queue.put_nowait(self.generator.index)
 
     @property
     def use_hard(self) -> bool:
