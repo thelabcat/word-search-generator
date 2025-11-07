@@ -146,6 +146,7 @@ class TkWindow(tk.Tk, GUICommon):
         # Progress bar
         self.progress_bar = ttk.Progressbar(self, variable=self.progress_bar_val)
         self.progress_bar.grid(row=4, sticky=tk.NSEW, padx=PAD, pady=(PAD//2, 0))
+        self.rowconfigure(4, minsize=30)
 
         # Go button
         self.gen_cancel_button = ttk.Button(self, text=GUICommon.Lang.gen_button, command=self.on_gen_cancel_button_click)
