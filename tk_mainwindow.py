@@ -31,6 +31,9 @@ TK_SIZE_FAC_OPTIONS = tuple(
     )
 PAD = 10  # Widget padding
 
+# How often to run status_tick in miliseconds
+STATUS_TICK_INTERVAL = 100
+
 
 class TkWindow(tk.Tk, GUICommon):
     """Word Search Generator GUI"""
@@ -56,6 +59,7 @@ class TkWindow(tk.Tk, GUICommon):
         self.progress_bar_val = tk.DoubleVar(self, 0)
 
         self.build()
+        self.status_ticker()
         self.mainloop()
 
     def build(self):
@@ -163,10 +167,14 @@ class TkWindow(tk.Tk, GUICommon):
         self.copykey_button = ttk.Button(resultbuttons_frame, text=GUICommon.Lang.copykey_button, command=self.copy_answer_key)
         self.copykey_button.grid(row=0, column=1, sticky=tk.NSEW, padx=(PAD/4, 0))
         resultbuttons_frame.columnconfigure(1, weight=1)
-        self.regulate_result_buttons()
 
         # Resize horizontally
         self.columnconfigure(0, weight=1)
+
+    def status_ticker(self):
+        """Run status_tick then reschedule ourself"""
+        self.status_tick()
+        self.after(STATUS_TICK_INTERVAL, self.status_ticker)
 
     def verify_size_fac(self, allow_blank: bool = False):
         """
@@ -229,49 +237,45 @@ class TkWindow(tk.Tk, GUICommon):
         self.text.insert(0.0, new)
         self.text.see(tk.END)
 
-    @property
-    def result_buttons_able(self) -> bool:
-        """Are the result buttons enabled?"""
-        return hasattr(self, "copypuzz_button") and self.copypuzz_button["state"] != tk.DISABLED
-
-    @result_buttons_able.setter
-    def result_buttons_able(self, state: bool):
+    def set_result_buttons_able(self, state: bool):
         """Enable or disable the result buttons"""
         for button in ("copypuzz_button", "copykey_button"):
             if not hasattr(self, button):
                 continue
             getattr(self, button).configure(state=(tk.DISABLED, tk.NORMAL)[state])
 
-    @property
-    def gen_cancel_button_able(self) -> bool:
-        """Is the generate button enabled?"""
-        return hasattr(self, "gen_cancel_button") and self.gen_cancel_button["state"] != tk.DISABLED
-
-    @gen_cancel_button_able.setter
-    def gen_cancel_button_able(self, state: bool):
+    def set_gen_cancel_button_able(self, state: bool):
         """Enable or disable the generate button"""
         if not hasattr(self, "gen_cancel_button"):
             return
         self.gen_cancel_button.config(state=(tk.DISABLED, tk.NORMAL)[state])
 
-    def configure_gen_cancel_button(self):
-        """Visually turn the generate button into a cancel button or back appropriately"""
+    #@property
+    def is_thread_running(self) -> bool:
+        """Get wether the generator thread is running"""
+        return bool(self.gen_thread and self.gen_thread.is_alive())
+
+    def set_gen_cancel_button_mode(self, is_cancel: bool):
+        """Visually change the gen/cancel button"""
         self.gen_cancel_button.configure(
             text=(
                 GUICommon.Lang.gen_button,
                 GUICommon.Lang.cancel_button,
-                )[self.gui_op_running])
+                )[is_cancel])
 
-    def update_gui_able(self):
-        """Configure the GUI based on self.gui_op_running"""
+    def set_gui_able(self, state: bool):
+        """Enable or disable the GUI"""
         for widget in self.busy_disable_widgets:
-            widget.configure(state=(tk.NORMAL, tk.DISABLED)[self.gui_op_running])
+            widget.configure(state=(tk.DISABLED, tk.NORMAL)[state])
 
-    def generate_puzzle(self):
-        """Generate a puzzle from the input words (threaded)"""
+    def update_progress_bar_max(self):
+        """Set the progress bar to the appropriate maximum"""
         self.progress_bar.configure(maximum=len(self.current_words))
-        self.thread = Thread(target=self._generate_puzzle, daemon=True)
-        self.thread.start()
+
+    def start_generation(self):
+        """Create and launch the generation thread"""
+        self.gen_thread = Thread(target=self.generate_puzzle, daemon=True)
+        self.gen_thread.start()
 
 
 def main():
