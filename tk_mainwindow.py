@@ -31,9 +31,6 @@ TK_SIZE_FAC_OPTIONS = tuple(
     )
 PAD = 10  # Widget padding
 
-# How often to run status_tick in miliseconds
-STATUS_TICK_INTERVAL = 100
-
 
 class TkWindow(tk.Tk, GUICommon):
     """Word Search Generator GUI"""
@@ -174,7 +171,7 @@ class TkWindow(tk.Tk, GUICommon):
     def status_ticker(self):
         """Run status_tick then reschedule ourself"""
         self.status_tick()
-        self.after(STATUS_TICK_INTERVAL, self.status_ticker)
+        self.after(int(GUICommon.status_tick_interval * 1000), self.status_ticker)
 
     def verify_size_fac(self, allow_blank: bool = False):
         """

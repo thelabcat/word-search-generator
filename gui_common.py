@@ -36,6 +36,9 @@ class GUICommon:
     # The range of size factor options
     size_fac_range = 1, 99
 
+    # How often to run status_tick in seconds
+    status_tick_interval = 0.1
+
     class Defaults:
         """GUI control defaults"""
         use_hard = False
