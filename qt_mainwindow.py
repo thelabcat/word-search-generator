@@ -51,6 +51,8 @@ class QtWindow(QWidget, GUICommon):
 
         self.__intersect_bias = INTERSECT_BIASES[GUICommon.Defaults.intersect_bias]
         self.build()
+        self.status_ticker_thread = StatusTicker(self)
+        self.status_ticker_thread.start()
 
     def copy_to_clipboard(self, text: str):
         """copy text to the clipboard"""
@@ -122,7 +124,6 @@ class QtWindow(QWidget, GUICommon):
         self.resultbuttons_layout = QHBoxLayout()
         self.resultbuttons_layout.addWidget(self.copypuzz_button)
         self.resultbuttons_layout.addWidget(self.copykey_button)
-        self.regulate_result_buttons()
 
         # We cannot do this until the generate and copy buttons exist
         self.words_entry_raw = GUICommon.Defaults.word_entry
@@ -148,27 +149,31 @@ class QtWindow(QWidget, GUICommon):
         """Do progress updates on the generation (slot)"""
         self.progress_bar.setValue(self.generator.index)
 
-    @property
-    def result_buttons_able(self) -> bool:
-        """Are the result buttons enabled?"""
-        return self.copypuzz_button.isEnabled()
+    def set_result_buttons_able(self, state: bool):
+        """Enable or disable the result buttons (thread-safe)"""
+        strstate = ("dis", "en")[state]
+        QMetaObject.invokeMethod(self, f"_result_buttons_{strstate}able")
 
-    @result_buttons_able.setter
-    def result_buttons_able(self, state: bool):
+    @Slot()
+    def _result_buttons_disable(self):
+        """Disable the result buttons"""
+        self._set_result_buttons_able(False)
+
+    @Slot()
+    def _result_buttons_enable(self):
+        """Enable the result buttons"""
+        self._set_result_buttons_able(True)
+
+    def _set_result_buttons_able(self, state: bool):
         """Enable or disable the result buttons"""
         self.copypuzz_button.setEnabled(state)
         self.copykey_button.setEnabled(state)
 
-    @property
-    def gen_cancel_button_able(self) -> bool:
-        """Is the generate button enabled?"""
-        return self.gen_cancel_button.isEnabled()
-
-    @gen_cancel_button_able.setter
-    def gen_cancel_button_able(self, state: bool):
+    def set_gen_cancel_button_able(self, state: bool):
         """Enable or disable the generate button (thread-safe)"""
-        method = ("_gen_cancel_button_disable", "_gen_cancel_button_enable")[state]
-        QMetaObject.invokeMethod(self, method)
+        #TODO, may not need thread-safe version
+        strstate = ("dis", "en")[state]
+        QMetaObject.invokeMethod(self, f"_gen_cancel_button_{strstate}able")
 
     @Slot()
     def _gen_cancel_button_disable(self):
@@ -182,7 +187,7 @@ class QtWindow(QWidget, GUICommon):
 
     @Slot()
     def on_gen_cancel_button_click(self):
-        """Start or abort generation"""
+        """Start or abort generation (slot)"""
         GUICommon.on_gen_cancel_button_click(self)
 
     def update_intersect_bias(self):
@@ -191,39 +196,48 @@ class QtWindow(QWidget, GUICommon):
         if radiobutton.isChecked:
             self.__intersect_bias = self.sender().bias_value
 
-    def update_gui_able(self):
-        """Configure the GUI based on self.gui_op_running (thread-safe)"""
-        QMetaObject.invokeMethod(self, "_update_gui_able")
-
-    @Slot()
-    def _update_gui_able(self):
-        """Configure the GUI based on self.gui_op_running (slot)"""
-        for widget in self.busy_disable_widgets:
-            widget.setEnabled(not self.gui_op_running)
-
-    def configure_gen_cancel_button(self):
-        """
-        Visually turn the generate button into a cancel button or back appropriately (thread-safe)
-        """
-        QMetaObject.invokeMethod(self, "_configure_gen_cancel_button")
-
-    @Slot()
-    def _configure_gen_cancel_button(self):
-        """
-        Visually turn the generate button into a cancel button or back appropriately (slot)
-        """
-
-        if self.gui_op_running:
-            self.gen_cancel_button.setText(GUICommon.Lang.cancel_button)
-        else:
-            self.gen_cancel_button.setText(GUICommon.Lang.gen_button)
-
-    @Slot()
-    def generate_puzzle(self):
-        """Generate a puzzle from the input words (threaded)"""
+    def update_progress_bar_max(self):
+        """Set the progress bar to the appropriate maximum"""
         self.progress_bar.setMaximum(len(self.current_words))
-        self.thread = PuzzGenThread(self)
-        self.thread.start()
+
+    @Slot()
+    def start_generation(self):
+        """Create and launch the generation thread"""
+        self.gen_thread = PuzzGenThread(self)
+        self.gen_thread.start()
+
+    def set_gen_cancel_button_mode(self, is_cancel: bool):
+        """Visually change the gen/cancel button"""
+        self.gen_cancel_button.setText((
+                GUICommon.Lang.gen_button,
+                GUICommon.Lang.cancel_button,
+                )[is_cancel])
+
+    def set_gui_able(self, state: bool):
+        """Set if the GUI is currently enabled (thread-safe)"""
+        #TODO, may not need thread-safe version
+        strstate = ("dis", "en")[state]
+        QMetaObject.invokeMethod(self, f"_gui_{strstate}able")
+
+    @Slot()
+    def _gui_disable(self):
+        """Disable the gui"""
+        self._set_gui_able(False)
+
+    @Slot()
+    def _gui_enable(self):
+        """Enable the gui"""
+        self._set_gui_able(True)
+
+    def _set_gui_able(self, state: bool):
+        """Set if the GUI is currently enabled"""
+        for widget in self.busy_disable_widgets:
+            widget.setEnabled(state)
+
+    #@property
+    def is_thread_running(self) -> bool:
+        """Wether or not the generation thread is still running"""
+        return bool(self.gen_thread and self.gen_thread.isRunning())
 
     @property
     def use_hard(self):
@@ -262,8 +276,26 @@ class PuzzGenThread(QThread):
 
     def run(self):
         """The threaded code"""
-        self.parent._generate_puzzle()
+        self.parent.generate_puzzle()
 
+class StatusTicker(QThread):
+    """Run GUI status_tick in a Qt thread constantly"""
+
+    def __init__(self, parent: QtWindow):
+        """
+        Run puzzle generation in a Qt thread
+
+        Args:
+            parent (QtWindow): The parent window
+        """
+        super().__init__(parent)
+        self.parent = parent
+
+    def run(self):
+        """The threaded code"""
+        while not self.isInterruptionRequested():
+            self.parent.status_tick()
+            self.sleep(GUICommon.status_tick_interval)
 
 def main():
     """Launch the GUI"""
@@ -271,6 +303,7 @@ def main():
     window = QtWindow()
     window.show()
     app.exec()
+    window.status_ticker_thread.requestInterruption()
 
 
 # If this was not imported, run it
