@@ -158,6 +158,7 @@ class GUICommon:
             self.generator.halted = True
         else:
             self.update_progress_bar_max()
+            self.configure_generator_object()
             self.start_generation()
 
     @property
@@ -202,14 +203,17 @@ class GUICommon:
 
         self.words_entry_raw = new_text
 
+    def configure_generator_object(self):
+        """Write current GUI settings to generator memory before starting"""
+
+        self.generator.words = self.current_words
+        self.generator.directions=self.directions
+        self.generator.size_fac=self.size_factor
+        self.generator.intersect_bias=self.intersect_bias
+
     def generate_puzzle(self):
         """Generate a puzzle from the input words"""
-        self.puzz_table = self.generator.gen_word_search(
-            self.current_words,
-            directions=self.directions,
-            size_fac=self.size_factor,
-            intersect_bias=self.intersect_bias
-            )
+        self.puzz_table = self.generator.gen_word_search()
         self.last_used_words = self.current_words
 
     @property
