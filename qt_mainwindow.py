@@ -20,7 +20,7 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 S.D.G."""
 
 import sys
-from PySide6.QtCore import Slot, QThread, QMetaObject, Qt
+from PySide6.QtCore import Slot, QThread, QMetaObject
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
@@ -142,12 +142,7 @@ class QtWindow(QWidget, GUICommon):
 
     def progress_update(self):
         """Do progress updates on the generation (thread-safe)"""
-        # If we are at 100%, make sure the connection goes through
-        if self.generator.index == len(self.generator.words):
-            QMetaObject.invokeMethod(self, "_progress_update", Qt.BlockingQueuedConnection)
-            return
-
-        QMetaObject.invokeMethod(self, "_progress_update", Qt.UniqueConnection)
+        QMetaObject.invokeMethod(self, "_progress_update")
 
     @Slot()
     def _progress_update(self):
