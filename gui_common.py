@@ -163,8 +163,8 @@ class GUICommon:
 
     @property
     def current_words(self) -> str:
-        """The currently entered words"""
-        return self.words_entry_raw.strip().upper().split()
+        """The currently entered words (filtered for duplicates)"""
+        return list(set(self.words_entry_raw.strip().upper().split()))
 
     @property
     def directions(self) -> list[tuple[int, int]]:
