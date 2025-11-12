@@ -56,6 +56,7 @@ class GUICommon:
         cancel_button = "Cancel"
         copypuzz_button = "Copy puzzle"
         copykey_button = "Copy key"
+        gen_thread = "Puzzle Generator Thread"
 
     def __init__(self):
         """Common stuff between the GUIs"""

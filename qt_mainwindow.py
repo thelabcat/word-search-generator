@@ -273,7 +273,7 @@ class PuzzGenThread(QThread):
         """
         super().__init__(parent)
         self.parent = parent
-        self.setObjectName("PuzzGenThread")
+        self.setObjectName(GUICommon.Lang.gen_thread)
 
     def run(self):
         """The threaded code"""

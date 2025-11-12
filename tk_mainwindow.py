@@ -293,7 +293,11 @@ class TkWindow(tk.Tk, GUICommon):
 
     def start_generation(self):
         """Create and launch the generation thread"""
-        self.gen_thread = Thread(target=self.generate_puzzle, daemon=True)
+        self.gen_thread = Thread(
+            target=self.generate_puzzle,
+            daemon=True,
+            name=GUICommon.Lang.gen_thread,
+            )
         self.gen_thread.start()
 
 
