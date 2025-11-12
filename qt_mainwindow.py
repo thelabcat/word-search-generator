@@ -273,6 +273,7 @@ class PuzzGenThread(QThread):
         """
         super().__init__(parent)
         self.parent = parent
+        self.setObjectName("PuzzGenThread")
 
     def run(self):
         """The threaded code"""
@@ -290,6 +291,7 @@ class StatusTicker(QThread):
         """
         super().__init__(parent)
         self.parent = parent
+        self.setObjectName("StatusTicker")
 
     def run(self):
         """The threaded code"""
