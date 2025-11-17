@@ -32,7 +32,7 @@ Within a minute or so, a simple GUI with a text entry area should appear:
 
 - Word intersection bias can tell the program to try word positions in the order of how many times that word legally intersects other already-placed words, either with lowest or highest first. The default "Random" does not do any kind of ordering, so just by probability you are probably going to get less than half of the possible intersections with "Random" set. Setting the bias to "Prefer" can speed up puzzle generation with small size factors, since it naturally crowds words together as tightly as possible.
 
-- The entry area has an explanatory set of demo words inserted at startup :) Delete that explanatory text, then enter one word per line with no punctuation. Capitalization will be ignored when generating the puzzle. Tip: If using some other whitespace than new lines is easier in your case, don't worry. The text area will convert those automatically. It will also quietly filter out punctuation. Note: As a test, you can run generation with the explanatory demo words.
+- The entry area has an explanatory set of demo words inserted at startup :) Delete that explanatory text, then enter one word per line with no punctuation. Capitalization will be ignored when generating the puzzle. Duplicate words will also be ignored. Tip: If using some other whitespace than new lines is easier in your case, don't worry. The text area will convert those automatically. It will also quietly filter out punctuation. Note: As a test, you can run generation with the explanatory demo words.
 
 I have done my best to make the Tk and Qt GUIs function identically. Tk is X11 native only right now, so the clipboard feature may not work properly on Wayland. Qt can run on X11 or Wayland, but is not easily available on some platforms. If the app cannot find the PySide6 library, i.e. PyQt support, it will automatically launch the Tk GUI instead. You can force the Tk GUI even if you have PySide6 by using a command line option (see below).
 
@@ -73,6 +73,9 @@ This is intended behavior. Though it starts with a puzzle size determined from t
 
 ### I cannot copy / paste in the word entry area with right-click
 This is expected, though not intended, behavior. You are probably using the Tk GUI, which does not have a right-click menu by default for its Text widget. I may implement one in the future, but for now you will have to yse keyboard shortcuts. Usually, this is <kbd>Ctrl</kbd> + <kbd>C</kbd> for copy, and <kbd>Ctrl</kbd> + <kbd>V</kbd> for paste.
+
+### Words entered more than once only appear once in the puzzle
+This is intended behavior, and is a limitation of the algorithm. If you really want multiple word support, let me know.
 
 ## Command line options:
 This program also supports several CLI options, including running without the GUI entirely. The program will go into CLI mode if and only if the `words` option is specified.
