@@ -2,12 +2,12 @@
 
 ![Screenshot](qt_main_window_screenshot.png "The main app window, Qt version")
 
-This program is meant to help homeschoolers and commercial teachers alike create their own custom word search puzzles for the kids (or themselves). Word search puzzles are really great for the mind.
+This program takes a list of words, and automatically generates a word search puzzle from them.
 
 This program can be set to either use only the four easier left-to-right and downward directions (not including the down-left diagonal), or to use all eight directions when generating puzzles.
 
-Since Python is an interpreted language, the source code can run without being compiled. However, to run the code, you must install Python to run it, which you can download at python.org
-This program is currently maintained in Python 3.14. If you need to use an older Python and there is a compatibility issue, let me know and I will seriously consider implementing backwards compatibility for your use case.
+Since Python is an interpreted language, the source code can run without being compiled. However, to run the code, you must install Python, which you can download at https://python.org .
+This program is currently maintained in Python 3.14. If you need to use an older Python and you encounter a compatibility issue, let me know, and I will seriously consider implementing backwards compatibility for your use case.
 
 This program also depends on the following Python libraries:
 - [NumPy](https://pypi.org/project/numpy/)
@@ -30,18 +30,18 @@ Within a minute or so, a simple GUI with a text entry area should appear:
 
 - Size factor is the target ratio of total puzzle letters to all letters that make up words. Cannot be less than 1. Defaults to 4. Entering 1 will make the most efficient puzzle possible, which will probably be ridiculously easy and is not recommended. The generator will automatically increase the puzzle size as necessary to fit in all the words, so this size factor is merely a starting size which may or may not be kept.
 
-- Word intersection bias can tell the program to try word positions respective of the order of how many times that word legally intersects other already-placed words. The default "Random" does not do any kind of ordering and just tries the positions in random order, so just by probability you are probably going to get less than half of the possible intersections with "Random" set. Setting the bias to "Prefer" can speed up puzzle generation with small size factors, since it naturally crowds words together as tightly as possible.
+- Word intersection bias can tell the program to try word positions in the order of how many times that word legally intersects other already-placed words, either with lowest or highest first. The default "Random" does not do any kind of ordering, so just by probability you are probably going to get less than half of the possible intersections with "Random" set. Setting the bias to "Prefer" can speed up puzzle generation with small size factors, since it naturally crowds words together as tightly as possible.
 
 - The entry area has an explanatory set of demo words inserted at startup :) Delete that explanatory text, then enter one word per line with no punctuation. Capitalization will be ignored when generating the puzzle. Tip: If using some other whitespace than new lines is easier in your case, don't worry. The text area will convert those automatically. It will also quietly filter out punctuation. Note: As a test, you can run generation with the explanatory demo words.
 
-I have done my best to make the Tk and Qt GUIs function identically. Tk is X11 native only right now, so the clipboard feature may not work properly on Wayland. Qt can run on X11 or Wayland, but is not easily available on some platforms. If the app cannot find the PySide6 library, i.e. PyQt support, it will automatically launch the Tk GUI instead. You can force the Tkinter GUI even if you have PySide6 by using a command line option (see below).
+I have done my best to make the Tk and Qt GUIs function identically. Tk is X11 native only right now, so the clipboard feature may not work properly on Wayland. Qt can run on X11 or Wayland, but is not easily available on some platforms. If the app cannot find the PySide6 library, i.e. PyQt support, it will automatically launch the Tk GUI instead. You can force the Tk GUI even if you have PySide6 by using a command line option (see below).
 
 
 ## Workflow:
 
 1. Open a text editor (doesn't matter how fancy) and make your list of words. You can even use an empty word processor document you'll be placing the puzzle in later. Just remember, if you're putting the puzzle in above the list, leave a one line space to paste in.
 
-2. Enter or paste (Ctrl+V) your list of words into the Word Search Generator. It should automatically adjust the input text so there is exactly one word per line. Note: There is no right-click edit menu at current, at least not in the Tk GUI. To copy or paste in the generator's text area, you must use the Ctrl+C and Ctrl+V keyboard shortcuts.
+2. Enter or paste (<kbd>Ctrl</kbd> + <kbd>V</kbd>) your list of words into the Word Search Generator. It should automatically adjust the input text so there is exactly one word per line. Note: There is no right-click edit menu at current, at least not in the Tk GUI. To copy or paste in the generator's text area, you must use the <kbd>Ctrl</kbd> + <kbd>C</kbd> and <kbd>Ctrl</kbd> + <kbd>V</kbd> keyboard shortcuts.
 
 3. Change the generator's settings as desired.
 
@@ -49,11 +49,11 @@ I have done my best to make the Tk and Qt GUIs function identically. Tk is X11 n
 
 5. Once the generation has finished, the "Cancel" button will change back to "Generate", and the two "Copy" buttons will un-grey.
 
-6. Click "Copy puzzle". If using Tkinter or X11, do not close the main program window, as this will erase what it copied to the clipboard.
+6. Click "Copy puzzle". If using Tk or X11, do not close the main program window, as this will erase what it copied to the clipboard.
 
 7. Hop over to your word processor, and set the font to something monospaced (letters are all the same width). Examples: Consolas (I think), DejaVu Sans Mono, Freesans Mono, and any other fonts ending with "mono" are monospaced.
 
-8. Paste (Ctrl+V). Ta-da!
+8. Paste (<kbd>Ctrl</kbd> + <kbd>V</kbd>). Ta-da!
 
 9. If desired, repeat steps 6-8, but click "Copy answer key" instead. This will copy a version of the generated puzzle without the filler characters.
 
@@ -63,19 +63,22 @@ You can use "Justify Center" and font size options to make things look pretty :)
 
 ## Troubleshooting
 ### The puzzle does not actually copy to the clipboard, so pasting fails
-You are probably using the Tkinter GUI on Wayland. To get around this without installing anything, run the program from / with the command line. Clicking the result buttons will also print the puzzle to Standard Output (I.E. the command line window). You can do this on Windows easily by renaming the file `word_search_generator.pyw` to just `word_search_generator.py` without the `w`, then double-clicking it as usual. See [issue #1](https://github.com/thelabcat/word-search-generator/issues/1) for more information.
+You are probably using the Tk GUI on Wayland. To get around this without installing anything, run the program from / with the command line. Clicking the result buttons will also print the puzzle to Standard Output (I.E. the command line window). You can do this on Windows easily by renaming the file `word_search_generator.pyw` to just `word_search_generator.py` without the `w`, then double-clicking it as usual. See [issue #1](https://github.com/thelabcat/word-search-generator/issues/1) for more information.
 
 ### Application fails to launch from source on Linux, and launching from CLI gives message about missing Qt plugin
-You are probably using X11. See [issue #11](https://github.com/thelabcat/word-search-generator/issues/11) for more information. You can force the app to use TkInter instead with the `--tkinter` command line option, or just run the app with no GUI, or try to install [these dependencies for Qt 6 on X11](https://doc.qt.io/qt-6/linux-requirements.html). Note: The bundled Linux executable should have these dependencies inside it, so if you are having this issue while using the Linux bundled executable, let me know.
+You are probably using X11. See [issue #11](https://github.com/thelabcat/word-search-generator/issues/11) for more information. You can force the app to use Tk instead with the `--use-tk` command line option, or just run the app with no GUI, or try to install [these dependencies for Qt 6 on X11](https://doc.qt.io/qt-6/linux-requirements.html). Note: The bundled Linux executable should have these dependencies inside it, so if you are having this issue while using the Linux bundled executable, let me know.
 
 ### Size factor is not respected, allowing puzzle to be bigger than specified
 This is intended behavior. Though it starts with a puzzle size determined from the size factor entered, the algorithm automatically increases the puzzle size if there was no way to fit all the words in.
+
+### I cannot copy / paste in the word entry area with right-click
+This is expected, though not intended, behavior. You are probably using the Tk GUI, which does not have a right-click menu by default for its Text widget. I may implement one in the future, but for now you will have to yse keyboard shortcuts. Usually, this is <kbd>Ctrl</kbd> + <kbd>C</kbd> for copy, and <kbd>Ctrl</kbd> + <kbd>V</kbd> for paste.
 
 ## Command line options:
 This program also supports several CLI options, including running without the GUI entirely. The program will go into CLI mode if and only if the `words` option is specified.
 
 ```
-usage: word_search_generator.py [-h] [-t] [-H] [-s SIZE_FACTOR] [-b INTERSECT_BIAS] [-a] [-d] [words ...]
+usage: word_search_generator.pyw [-h] [-t] [-H] [-s SIZE_FACTOR] [-b INTERSECT_BIAS] [-a] [-d] [words ...]
 
 Generate word search puzzles, CLI or GUI. CLI options only have effect in CLI mode. CLI mode is triggered by passing any words to the command.
 
@@ -84,7 +87,7 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
-  -t, --tkinter         (GUI) Use the legacy Tkinter GUI instead of Qt
+  -t, --use-tk          (GUI) Use the legacy Tk GUI instead of Qt
   -H, --use-hard        (CLI) Use the harder, backwards (11-o'-clock) directions
   -s, --size-factor SIZE_FACTOR
                         (CLI) Set the starting factor of how many junk characters to fill characters to use (will increase as neccesary), defaults to 4
