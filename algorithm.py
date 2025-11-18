@@ -116,6 +116,16 @@ class Position:
 
         return xarray, yarray
 
+    def __eq__(self, other):
+        """
+        Is this position equal to another?
+
+        Args:
+            other (position): The position to compare to"""
+
+        assert isinstance(other, type(self)), "Cannot compare position to non-position"
+        return self.x, self.y, self.direction == other.x, other.y, other.direction
+
 
 class Generator:
     """Generate a word search puzzle"""
@@ -135,6 +145,7 @@ class Generator:
         self.__progress_step = progress_step
 
         self.words = None
+        self.size_fac = SIZE_FAC_DEFAULT
         self.dim = 1
         self.directions = ()
         self.intersect_bias = 0
@@ -200,7 +211,7 @@ class Generator:
     @staticmethod
     def all_posits(
             dim: int,
-            directions: Sequence[tuple[int, int]] = DIRECTIONS
+            directions: Sequence[tuple[int, int]] = DIRECTIONS,
             ) -> tuple[Position]:
         """
         Generate list of all possible positions.
@@ -255,7 +266,7 @@ class Generator:
         # If all the spots are either legal intersections or blank
         success_arr = np.logical_or(intersecion_arr, blankspots)
 
-        return not (False in success_arr), int(sum(intersecion_arr))
+        return False not in success_arr, int(sum(intersecion_arr))
 
     @property
     def cur_word(self) -> str | None:
@@ -267,6 +278,9 @@ class Generator:
     @property
     def cur_workable_posits(self):
         """The workable positions for the current word"""
+
+        if self.cur_word is None:
+            return None
 
         # Calculate avaliable positions if we haven't already
         if self.cur_word not in self.all_workable_posits:
@@ -295,41 +309,55 @@ class Generator:
 
     def gen_word_search(
             self,
-            words: list[str],
-            directions: Sequence[tuple[int, int]] = DIRECTIONS,
-            size_fac: int = SIZE_FAC_DEFAULT,
-            intersect_bias: int | bool = False,
+            words: list[str] = None,
+            directions: Sequence[tuple[int, int]] = None,
+            size_fac: int = None,
+            intersect_bias: int | bool = None,
             ) -> list[list[str]]:
         """
         Generate a word search puzzle.
 
         Args:
             words (list[str]): List of words to put in puzzle.
+                Defaults to None, use stored words.
             directions (Sequence[Sequence[int, int]]) = Optionally specify the
                 directions the words can go in.
-                Defaults to all DIRECTIONS.
+                Defaults to None, use stored value.
             size_fac (int): The ratio of word letters to total letters to aim
                 for.
-                Defaults to SIZE_FAC_DEFAULT.
+                Defaults to None, use stored size factor.
             intersect_bias (int | bool): Wether or not to be biased about word
                 intersections.
                 False or 0 means no bias.
                 True or 1 means favor intersections.
                 -1 means avoid intersections.
-                Defaults to False.
+                Defaults to None, use stored bias.
 
         Returns:
             table (np.array): The completed puzzle.
         """
 
-        # Remove all duplicate words
-        self.words = list(set(words))
+        # Accept words argument, or reuse stored
+        if words:
+            self.words = words
 
-        self.dim = Generator.get_puzzle_dim(self.words, size_fac)  # Generate puzzle dimension
+        # Remove all duplicate words
+        self.words = list(set(self.words))
+
+        assert self.words, "No words were passed or stored in object data"
+
+        # Accept size_fac argument, or reuse stored
+        if size_fac is not None:
+            self.size_fac = size_fac
+
+        self.dim = Generator.get_puzzle_dim(self.words, self.size_fac)  # Generate puzzle dimension
 
         # Store other arguments
-        self.directions = directions
-        self.intersect_bias = intersect_bias
+        if directions is not None:
+            self.directions = directions
+
+        if intersect_bias is not None:
+            self.intersect_bias = intersect_bias
 
         self.reset_generation_data()
 
@@ -374,6 +402,9 @@ class Generator:
         # The generation was cancelled
         if self.halted:
             return None
+
+        # The generation completed, so now wwe signal a stop
+        self.halted = True
 
         # Swap the X and Y axes for display
         return np.rot90(np.fliplr(self.table))

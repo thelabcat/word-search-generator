@@ -51,9 +51,9 @@ if __name__ == "__main__":
         )
 
     parser.add_argument(
-        "-t", "--tkinter",
+        "-t", "--use-tk",
         action="store_true",
-        help="(GUI) Use the legacy Tkinter GUI instead of Qt",
+        help="(GUI) Use the legacy Tk GUI instead of Qt",
         )
     parser.add_argument(
         "-H", "--use-hard",
@@ -133,8 +133,8 @@ if __name__ == "__main__":
                 print("--------------")
 
     # We are GUI
-    elif args.tkinter or not HAVE_QT:
-        print("Using legacy Tkinter GUI")
+    elif args.use_tk or not HAVE_QT:
+        print("Using legacy Tk GUI")
         tkmain()
 
     else:

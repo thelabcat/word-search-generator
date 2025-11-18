@@ -2,17 +2,16 @@
 
 ![Screenshot](qt_main_window_screenshot.png "The main app window, Qt version")
 
-This program is meant to help homeschoolers and commercial teachers alike create their own custom word search puzzles for the kids (or themselves). Word search puzzles are really great for the mind.
+This program takes a list of words, and automatically generates a word search puzzle from them.
 
 This program can be set to either use only the four easier left-to-right and downward directions (not including the down-left diagonal), or to use all eight directions when generating puzzles.
 
-The source code runs as is. However, to run the code, you must install Python to run it, which you can download at python.org
-This program was written for and successfully run in python 3.13.
+Since Python is an interpreted language, the source code can run without being compiled. However, to run the code, you must install Python, which you can download at https://python.org .
+This program is currently maintained in Python 3.14. If you need to use an older Python and you encounter a compatibility issue, let me know, and I will seriously consider implementing backwards compatibility for your use case.
 
 This program also depends on the following Python libraries:
 - [NumPy](https://pypi.org/project/numpy/)
-
-For the newer Qt GUI, you should also install [PySide6](https://pypi.org/project/pyside6/), but it is currently not required. It is also not available for Python 3.14 yet.
+- [PySide6](https://pypi.org/project/pyside6/) (weak dependency, needed only for the Qt version of the GUI)
 
 You can find executables with bundled Python and dependencies in the Releases page of this repository.
 
@@ -20,41 +19,41 @@ You can find executables with bundled Python and dependencies in the Releases pa
 
 To run from source:
 1. Download the repository as a zip, or clone it.
-2. Download and install a version of Python 3, then use `pip` to install the dependencies. This can be expedited by downloading the `requirements.txt` file, then running `pip install -r requirements.txt` in the console.
-3. Double-click the word_search_generator.py file (or otherwise open it with the Python interpreter on your OS).
+2. Download and install a version of Python 3, then install the dependencies. First, try using `pip` to install them. This can be expedited by downloading the `requirements.txt` file, then running `pip install -r requirements.txt` in the console. If your main Python environment is managed "externally" (I.E. by your system package manager), you can't use `pip` without a virtual environment. Even if `pip` fails for some other reason, you might be able to get the dependencies via your system package manager.
+3. Double-click the word_search_generator.pyw file (or otherwise open it with the Python interpreter on your OS).
 
-To run from binary, download the appropriate binary for your OS from the Releases page, and double-click it.
+To run from a binary, things are a bit simpler. Download the appropriate binary for your OS from the Releases page of the GitHub repository, and double-click it.
 
 Within a minute or so, a simple GUI with a text entry area should appear:
 
-- The checkbox enables the use of harder-to-find word placing directions (ones that go backwards). Those directions are up, left-hand, left-hand up, and left-hand down. The easy-to-find directions (which are always used) are right-hand, down, right-hand down, and right-hand up.
+- The checkbox enables the use of harder-to-find word placing directions (ones that go backwards). The easy-to-find directions, which are always used, are right-hand, down, right-hand down, and right-hand up. The optional harder directions are up, left-hand, left-hand up, and left-hand down.
 
-- Size factor is the ratio of total puzzle letters to all letters that make up words. Cannot be less than 1. Defaults to 4. Entering 1 will make the most efficient puzzle possible, which will probably be ridiculously easy and is not recommended.
+- Size factor is the target ratio of total puzzle letters to all letters that make up words. Cannot be less than 1. Defaults to 4. Entering 1 will make the most efficient puzzle possible, which will probably be ridiculously easy and is not recommended. The generator will automatically increase the puzzle size as necessary to fit in all the words, so this size factor is merely a starting size which may or may not be kept.
 
-- Word intersection bias can tell the program to try word positions in the order of how many times that word legally intersects other already-placed words. The default "Random" does not do any kind of ordering and just tries the positions in totally random order, so just by probability there are likely to be less than half of the possible intersections with "Random" set. Setting the bias to "Prefer" can speed up puzzle generation with small size factors, since it naturally crowds words together as tightly as possible.
+- Word intersection bias can tell the program to try word positions in the order of how many times that word legally intersects other already-placed words, either with lowest or highest first. The default "Random" does not do any kind of ordering, so just by probability you are probably going to get less than half of the possible intersections with "Random" set. Setting the bias to "Prefer" can speed up puzzle generation with small size factors, since it naturally crowds words together as tightly as possible.
 
-- The entry area has an explanatory set of demo words inserted at startup :) Delete that explanatory text, then enter one word per line with no punctuation. Capitalization will be ignored when generating the puzzle. Tip: If using some other whitespace than new lines is easier in your case, don't worry. The text area will convert those automatically. It will also quietly filter out punctuation.
+- The entry area has an explanatory set of demo words inserted at startup :) Delete that explanatory text, then enter one word per line with no punctuation. Capitalization will be ignored when generating the puzzle. Duplicate words will also be ignored. Tip: If using some other whitespace than new lines is easier in your case, don't worry. The text area will convert those automatically. It will also quietly filter out punctuation. Note: As a test, you can run generation with the explanatory demo words.
 
-For now, wether using the new Qt GUI or the legacy Tkinter GUI, the features are about the same. The size factor spinbox behaves slightly differently in Tkinter, though. Note: You can force the Tkinter GUI even if you have the PySide6 library, i.e. PyQt support, by using a command line option (see below).
+I have done my best to make the Tk and Qt GUIs function identically. Tk is X11 native only right now, so the clipboard feature may not work properly on Wayland. Qt can run on X11 or Wayland, but is not easily available on some platforms. If the app cannot find the PySide6 library, i.e. PyQt support, it will automatically launch the Tk GUI instead. You can force the Tk GUI even if you have PySide6 by using a command line option (see below).
 
 
 ## Workflow:
 
 1. Open a text editor (doesn't matter how fancy) and make your list of words. You can even use an empty word processor document you'll be placing the puzzle in later. Just remember, if you're putting the puzzle in above the list, leave a one line space to paste in.
 
-2. Enter or paste (Ctrl+V) your list of words into the Word Search Generator. It should automatically adjust the input text so there is exactly one word per line. Note: There is no right-click edit menu at current. To copy or paste in the generator's text area, you must use the Ctrl+C and Ctrl+V keyboard shortcuts.
+2. Enter or paste (<kbd>Ctrl</kbd> + <kbd>V</kbd>) your list of words into the Word Search Generator. It should automatically adjust the input text so there is exactly one word per line. Note: There is no right-click edit menu at current, at least not in the Tk GUI. To copy or paste in the generator's text area, you must use the <kbd>Ctrl</kbd> + <kbd>C</kbd> and <kbd>Ctrl</kbd> + <kbd>V</kbd> keyboard shortcuts.
 
 3. Change the generator's settings as desired.
 
-4. Click "Generate", then wait. The program may "freeze" for several seconds, but should not disappear (a crash).
+4. Click "Generate", then wait for the algorithm to work. The "Generate" button should instantly change to "Cancel", and the progress bar will show how many words have been placed so far out of all of them. Note: This is not a true "progress" bar, as it will occasionally jump backwards if changes are reverted and new possibility branches are tried. This happens more often with greater word numbers and smaller size factors, as the program is less likely to find a working combination.
 
-5. Once the generation has finished, the "Generate" button will pop back up, and the two "Copy" buttons will un-grey.
+5. Once the generation has finished, the "Cancel" button will change back to "Generate", and the two "Copy" buttons will un-grey.
 
-6. Click "Copy puzzle". If using Tkinter or X11, do not close the main program window, as this will erase what it copied to the clipboard.
+6. Click "Copy puzzle". If using Tk or X11, do not close the main program window, as this will erase what it copied to the clipboard.
 
 7. Hop over to your word processor, and set the font to something monospaced (letters are all the same width). Examples: Consolas (I think), DejaVu Sans Mono, Freesans Mono, and any other fonts ending with "mono" are monospaced.
 
-8. Paste (Ctrl+V). Ta-da!
+8. Paste (<kbd>Ctrl</kbd> + <kbd>V</kbd>). Ta-da!
 
 9. If desired, repeat steps 6-8, but click "Copy answer key" instead. This will copy a version of the generated puzzle without the filler characters.
 
@@ -64,19 +63,25 @@ You can use "Justify Center" and font size options to make things look pretty :)
 
 ## Troubleshooting
 ### The puzzle does not actually copy to the clipboard, so pasting fails
-You are probably using the Tkinter GUI on Wayland. Currently, my workaround for this on those systems is having the program print the puzzle to stdout, i.e. a terminal it was run from. There is much information elsewhere on how to run Python programs from the terminal. See [issue #1](https://github.com/thelabcat/word-search-generator/issues/1) for more information.
+You are probably using the Tk GUI on Wayland. To get around this without installing anything, run the program from / with the command line. Clicking the result buttons will also print the puzzle to Standard Output (I.E. the command line window). You can do this on Windows easily by renaming the file `word_search_generator.pyw` to just `word_search_generator.py` without the `w`, then double-clicking it as usual. See [issue #1](https://github.com/thelabcat/word-search-generator/issues/1) for more information.
 
 ### Application fails to launch from source on Linux, and launching from CLI gives message about missing Qt plugin
-You are probably using X11. See [issue #11](https://github.com/thelabcat/word-search-generator/issues/11) for more information. You can force the app to use TkInter instead with the `--tkinter` command line option, or just run the app with no GUI, or try to install [these dependencies for Qt 6 on X11](https://doc.qt.io/qt-6/linux-requirements.html). Note: The bundled Linux executable should have these dependencies inside it, so if you are having this issue while using the Linux bundled executable, let me know.
+You are probably using X11. See [issue #11](https://github.com/thelabcat/word-search-generator/issues/11) for more information. You can force the app to use Tk instead with the `--use-tk` command line option, or just run the app with no GUI, or try to install [these dependencies for Qt 6 on X11](https://doc.qt.io/qt-6/linux-requirements.html). Note: The bundled Linux executable should have these dependencies inside it, so if you are having this issue while using the Linux bundled executable, let me know.
 
 ### Size factor is not respected, allowing puzzle to be bigger than specified
 This is intended behavior. Though it starts with a puzzle size determined from the size factor entered, the algorithm automatically increases the puzzle size if there was no way to fit all the words in.
+
+### I cannot copy / paste in the word entry area with right-click
+This is expected, though not intended, behavior. You are probably using the Tk GUI, which does not have a right-click menu by default for its Text widget. I may implement one in the future, but for now you will have to yse keyboard shortcuts. Usually, this is <kbd>Ctrl</kbd> + <kbd>C</kbd> for copy, and <kbd>Ctrl</kbd> + <kbd>V</kbd> for paste.
+
+### Words entered more than once only appear once in the puzzle
+This is intended behavior, and is a limitation of the algorithm. If you really want multiple word support, let me know.
 
 ## Command line options:
 This program also supports several CLI options, including running without the GUI entirely. The program will go into CLI mode if and only if the `words` option is specified.
 
 ```
-usage: word_search_generator.py [-h] [-t] [-H] [-s SIZE_FACTOR] [-b INTERSECT_BIAS] [-a] [-d] [words ...]
+usage: word_search_generator.pyw [-h] [-t] [-H] [-s SIZE_FACTOR] [-b INTERSECT_BIAS] [-a] [-d] [words ...]
 
 Generate word search puzzles, CLI or GUI. CLI options only have effect in CLI mode. CLI mode is triggered by passing any words to the command.
 
@@ -85,7 +90,7 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
-  -t, --tkinter         (GUI) Use the legacy Tkinter GUI instead of Qt
+  -t, --use-tk          (GUI) Use the legacy Tk GUI instead of Qt
   -H, --use-hard        (CLI) Use the harder, backwards (11-o'-clock) directions
   -s, --size-factor SIZE_FACTOR
                         (CLI) Set the starting factor of how many junk characters to fill characters to use (will increase as neccesary), defaults to 4

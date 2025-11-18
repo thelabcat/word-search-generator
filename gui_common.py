@@ -13,7 +13,7 @@ later version.
 This program is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE. See the GNU General Public License for more details.
-
+I could some redefining stuff, but I'm not sure.
 You should have received a copy of the GNU General Public License along with
 this program. If not, see <https://www.gnu.org/licenses/>.
 
@@ -25,21 +25,38 @@ from algorithm import (
     ALL_CHARS,
     DIRECTIONS,
     EASY_DIRECTIONS,
+    SIZE_FAC_DEFAULT,
+    INTERSECT_BIAS_DEFAULT,
     )
 
 
 class GUICommon:
     """Common stuff between the GUIs"""
+
+    # The range of size factor options
+    size_fac_range = 1, 99
+
+    # How often to run status_tick in seconds
+    status_tick_interval = 0.1
+
+    class Defaults:
+        """GUI control defaults"""
+        use_hard = False
+        size_fac = SIZE_FAC_DEFAULT
+        intersect_bias = INTERSECT_BIAS_DEFAULT
+        word_entry = "Delete this text, then enter one word per line."
+
     class Lang:
         """Labels for stuff"""
         window_title = "Word Search Gen"
         use_hard = "Use backwards directions"
         size_factor = "Size factor:"
         word_intersect_bias = "Word intersections bias:"
-        word_entry_default = "Delete this text, then enter one word per line."
         gen_button = "Generate"
+        cancel_button = "Cancel"
         copypuzz_button = "Copy puzzle"
         copykey_button = "Copy key"
+        gen_thread = "Puzzle Generator Thread"
 
     def __init__(self):
         """Common stuff between the GUIs"""
@@ -49,6 +66,9 @@ class GUICommon:
 
         # The generator object we will reuse
         self.generator = Generator(self.progress_update)
+
+        # The operation Thread
+        self.gen_thread = None
 
         # The last used word list
         self.last_used_words = []
@@ -86,30 +106,66 @@ class GUICommon:
         """The raw entry in the text area"""
         raise NotImplementedError
 
-    @property
-    def result_buttons_able(self) -> bool:
-        """Are the result buttons enabled?"""
-        raise NotImplementedError
-
-    @result_buttons_able.setter
-    def result_buttons_able(self, state: bool):
+    def set_result_buttons_able(self, state: bool):
         """Enable or disable the result buttons"""
         raise NotImplementedError
 
-    @property
-    def gen_button_able(self) -> bool:
-        """Is the generate button enabled?"""
-        raise NotImplementedError
-
-    @gen_button_able.setter
-    def gen_button_able(self, state: bool):
+    def set_gen_cancel_button_able(self, state: bool):
         """Enable or disable the generate button"""
         raise NotImplementedError
 
+    def update_progress_bar_max(self):
+        """Set the progress bar to the appropriate maximum"""
+        raise NotImplementedError
+
+    def start_generation(self):
+        """Create and launch the generation thread"""
+        raise NotImplementedError
+
+    def set_gen_cancel_button_mode(self, is_cancel: bool):
+        """Visually change the gen/cancel button"""
+        raise NotImplementedError
+
+    def set_gui_able(self, state: bool):
+        """Set if the GUI is currently enabled"""
+        raise NotImplementedError
+
+    #@property
+    def is_thread_running(self) -> bool:
+        """Wether or not the thread is still running"""
+        raise NotImplementedError
+
+    def status_tick(self):
+        """Update components of the GUI affected by a running generation, appropriately"""
+        self.update_gui_able()
+        self.update_gen_cancel_button_mode()
+        self.update_result_buttons_able()
+
+    def update_gui_able(self):
+        """Update the able state of the GUI based on self.is_thread_running"""
+        self.set_gui_able(not self.is_thread_running())
+
+    def update_gen_cancel_button_mode(self):
+        """Appropriately change the gen/cancel button appearance"""
+        self.set_gen_cancel_button_mode(self.is_thread_running())
+
+    def update_result_buttons_able(self):
+        """Set the result buttons to the appropriate current state"""
+        self.set_result_buttons_able(bool(self.puzz_table is not None and not self.is_thread_running()))
+
+    def on_gen_cancel_button_click(self):
+        """Start or abort generation"""
+        if self.is_thread_running():
+            self.generator.halted = True
+        else:
+            self.update_progress_bar_max()
+            self.configure_generator_object()
+            self.start_generation()
+
     @property
     def current_words(self) -> str:
-        """The currently entered words"""
-        return self.words_entry_raw.strip().upper().split()
+        """The currently entered words (filtered for duplicates)"""
+        return list(set(self.words_entry_raw.strip().upper().split()))
 
     @property
     def directions(self) -> list[tuple[int, int]]:
@@ -122,8 +178,7 @@ class GUICommon:
     def on_input_text_changed(self):
         """What to do when the user edits the input text"""
         self.format_input_text()
-        self.regulate_gen_button()
-        self.regulate_result_buttons()
+        self.set_gen_cancel_button_able(bool(self.current_words))
 
     def format_input_text(self):
         """Lock the input text to acceptable formatting"""
@@ -149,29 +204,18 @@ class GUICommon:
 
         self.words_entry_raw = new_text
 
-    def regulate_gen_button(self):
-        """Set the state of the go button appropriately"""
-        self.gen_button_able = bool(self.current_words)
+    def configure_generator_object(self):
+        """Write current GUI settings to generator memory before starting"""
 
-    def regulate_result_buttons(self):
-        """Set the state of the result buttons appropriately"""
-
-        # Enable the result buttons if we have a puzzle to copy,
-        # and the entered words have not changed
-        self.result_buttons_able = self.puzz_table is not None
+        self.generator.words = self.current_words
+        self.generator.directions=self.directions
+        self.generator.size_fac=self.size_factor
+        self.generator.intersect_bias=self.intersect_bias
 
     def generate_puzzle(self):
         """Generate a puzzle from the input words"""
-
-        self.puzz_table = self.generator.gen_word_search(
-            self.current_words,
-            directions=self.directions,
-            size_fac=self.size_factor,
-            intersect_bias=self.intersect_bias
-            )
+        self.puzz_table = self.generator.gen_word_search()
         self.last_used_words = self.current_words
-
-        self.regulate_result_buttons()
 
     @property
     def puzzle(self) -> str:
