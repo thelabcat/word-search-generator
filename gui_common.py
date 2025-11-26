@@ -221,13 +221,15 @@ class GUICommon:
     def copy_puzzle(self):
         """Copy the puzzle to the clipboard and print to stdout"""
         self.copy_to_clipboard(self.puzzle)
-        print("--- Puzzle ---")
+        # print("--- Puzzle ---")
         print(self.puzzle)
-        print("--------------")
+        print()
+        # print("--------------")
 
     def copy_answer_key(self):
         """Copy the answer key to the clipboard and print to stdout"""
         self.copy_to_clipboard(self.answer_key)
-        print("- Answer Key -")
+        # print("- Answer Key -")
         print(self.answer_key)
-        print("--------------")
+        print()
+        # print("--------------")
