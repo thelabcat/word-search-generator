@@ -81,9 +81,9 @@ This is intended behavior, and is a limitation of the algorithm. If you really w
 This program also supports several CLI options, including running without the GUI entirely. The program will go into CLI mode if and only if the `words` option is specified.
 
 ```
-usage: word_search_generator.pyw [-h] [-t] [-H] [-s SIZE_FACTOR] [-b INTERSECT_BIAS] [-a] [-d] [words ...]
+usage: word_search_generator.pyw [-h] [-t] [-H] [-s SIZE_FACTOR] [-b INTERSECT_BIAS] [-a] [words ...]
 
-Generate word search puzzles, CLI or GUI. CLI options only have effect in CLI mode. CLI mode is triggered by passing any words to the command.
+Generate word search puzzles, CLI or GUI. CLI mode is triggered by passing any words to the command.
 
 positional arguments:
   words                 (CLI) Words to put into the puzzle, or '-' to accept stdin
@@ -91,16 +91,18 @@ positional arguments:
 options:
   -h, --help            show this help message and exit
   -t, --use-tk          (GUI) Use the legacy Tk GUI instead of Qt
-  -H, --use-hard        (CLI) Use the harder, backwards (11-o'-clock) directions
+  -H, --use-hard        Use the harder, backwards (11-o'-clock) directions
   -s, --size-factor SIZE_FACTOR
-                        (CLI) Set the starting factor of how many junk characters to fill characters to use (will increase as neccesary), defaults to 4
+                        Set the starting factor of how many junk characters to fill characters to use (will increase as neccesary), defaults to 4
   -b, --intersect-bias INTERSECT_BIAS
-                        (CLI) Set a bias toward or against word intersections. Defaults to 0, random intersections
+                        Set a bias toward or against word intersections. Defaults to 0, random intersections
   -a, --answers         (CLI) Also print the puzzle with no filler characters
-  -d, --no-decorate     (CLI) Don't print decoration lines around puzzle and key
 
 S.D.G.
+
 ```
+
+Note that the options which affect the GUI (anything not labeled CLI other than `--help`) merely set its defaults. They can still be overridden graphically.
 
 ## Legal:
 
