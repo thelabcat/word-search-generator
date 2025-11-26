@@ -35,7 +35,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     )
 
-from algorithm import INTERSECT_BIASES
+from algorithm import INTERSECT_BIAS_NAMES
 from gui_common import GUICommon
 
 
@@ -49,7 +49,7 @@ class QtWindow(QWidget, GUICommon):
 
         self.clipboard = QApplication.clipboard()
 
-        self.__intersect_bias = INTERSECT_BIASES[GUICommon.Defaults.intersect_bias]
+        self.__intersect_bias = GUICommon.Defaults.intersect_bias
         self.build()
         self.status_ticker_thread = StatusTicker(self)
         self.status_ticker_thread.start()
@@ -91,11 +91,11 @@ class QtWindow(QWidget, GUICommon):
         self.bias_label = QLabel(GUICommon.Lang.word_intersect_bias)
 
         self.bias_ops_layout = QHBoxLayout()
-        for bias_name, bias_value in INTERSECT_BIASES.items():
+        for bias_value, bias_name in INTERSECT_BIAS_NAMES.items():
             widget = QRadioButton(bias_name.capitalize())
             widget.bias_value = bias_value
             widget.toggled.connect(self.update_intersect_bias)
-            if bias_name == GUICommon.Defaults.intersect_bias:
+            if bias_value == GUICommon.Defaults.intersect_bias:
                 widget.setChecked(True)
             self.bias_ops_layout.addWidget(widget)
             self.busy_disable_widgets.append(widget)

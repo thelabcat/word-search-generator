@@ -24,7 +24,7 @@ from threading import Thread
 import tkinter as tk
 from tkinter import ttk
 
-from algorithm import INTERSECT_BIASES
+from algorithm import INTERSECT_BIAS_NAMES
 from gui_common import GUICommon
 
 TK_SIZE_FAC_OPTIONS = tuple(
@@ -52,7 +52,7 @@ class TkWindow(tk.Tk, GUICommon):
             )
         self.__intersect_bias = tk.IntVar(
             self,
-            INTERSECT_BIASES[GUICommon.Defaults.intersect_bias]
+            GUICommon.Defaults.intersect_bias
             )
         self.progress_bar_val = tk.DoubleVar(self, 0)
 
@@ -110,8 +110,8 @@ class TkWindow(tk.Tk, GUICommon):
             .grid(row=0, column=0, columnspan=3, sticky=tk.NSEW, padx=PAD//2)
 
         # Create radiobuttons for the three biases
-        for i, bias_pair in enumerate(INTERSECT_BIASES.items()):
-            bias_name, bias_value = bias_pair
+        for i, bias_pair in enumerate(INTERSECT_BIAS_NAMES.items()):
+            bias_value, bias_name = bias_pair
             rb = ttk.Radiobutton(
                 bias_frame,
                 text=bias_name.capitalize(),

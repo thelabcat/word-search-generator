@@ -46,8 +46,8 @@ EASY_DIRECTIONS = DIRECTIONS[:4]  # Easy mode directions
 SIZE_FAC_DEFAULT = 4
 
 # Intersection biases
-INTERSECT_BIASES = {"avoid": -1, "random": 0, "prefer": 1}
-INTERSECT_BIAS_DEFAULT = "random"
+INTERSECT_BIAS_NAMES = {-1: "avoid", 0: "random", 1: "prefer"}
+INTERSECT_BIAS_DEFAULT = 0
 
 # Filling characters and limiter for input words (modify this to allow for punctuation)
 ALL_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
