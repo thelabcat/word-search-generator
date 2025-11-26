@@ -27,26 +27,25 @@ from algorithm import (
     DIRECTIONS,
     EASY_DIRECTIONS,
     SIZE_FAC_DEFAULT,
-    INTERSECT_BIASES,
+    INTERSECT_BIAS_NAMES,
     INTERSECT_BIAS_DEFAULT,
     )
 
 try:
-    from qt_mainwindow import main as qtmain
+    import qt_mainwindow
     HAVE_QT = True
 except ImportError as e:
     warn(f"Could not import the Qt GUI module: {e}")
     HAVE_QT = False
 
-from tk_mainwindow import main as tkmain
+import tk_mainwindow
 
 # If this program was launched directly, run it
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog=os.path.basename(__file__),
-        description="Generate word search puzzles, CLI or GUI. CLI options " +
-        "only have effect in CLI mode. CLI mode is triggered by passing any " +
-        "words to the command.",
+        description="Generate word search puzzles, CLI or GUI. CLI mode is " +
+        "triggered by passing any words to the command.",
         epilog="S.D.G.",
         )
 
@@ -58,12 +57,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "-H", "--use-hard",
         action="store_true",
-        help="(CLI) Use the harder, backwards (11-o'-clock) directions",
+        help="Use the harder, backwards (11-o'-clock) directions",
         )
     parser.add_argument(
         "-s", "--size-factor",
         type=int,
-        help="(CLI) Set the starting factor of how many junk characters to " +
+        help="Set the starting factor of how many junk characters to " +
         "fill characters to use (will increase as neccesary), defaults to " +
         f"{SIZE_FAC_DEFAULT}",
         default=SIZE_FAC_DEFAULT,
@@ -71,20 +70,20 @@ if __name__ == "__main__":
     parser.add_argument(
         "-b", "--intersect-bias",
         type=int,
-        help="(CLI) Set a bias toward or against word intersections. " +
-        f"Defaults to {INTERSECT_BIASES[INTERSECT_BIAS_DEFAULT]}, " +
-        f"{INTERSECT_BIAS_DEFAULT} intersections",
+        help="Set a bias toward or against word intersections. " +
+        f"Defaults to {INTERSECT_BIAS_DEFAULT}, " +
+        f"{INTERSECT_BIAS_NAMES[INTERSECT_BIAS_DEFAULT]} intersections",
         )
     parser.add_argument(
         "-a", "--answers",
         action="store_true",
         help="(CLI) Also print the puzzle with no filler characters",
         )
-    parser.add_argument(
-        "-d", "--no-decorate",
-        action="store_true",
-        help="(CLI) Don't print decoration lines around puzzle and key",
-        )
+    # parser.add_argument(
+        # "-d", "--no-decorate",
+        # action="store_true",
+        # help="(CLI) Don't print decoration lines around puzzle and key",
+        # )
     parser.add_argument(
         "words",
         nargs="*",
@@ -114,27 +113,40 @@ if __name__ == "__main__":
             )
 
         # Display the results
-        if args.no_decorate:
-            print(puzz)
-        else:
-            print("--- Puzzle ---")
-            print(puzz)
-            print("--------------")
+        # if args.no_decorate:
+        print(puzz)
+        # else:
+            # print("--- Puzzle ---")
+            # print(puzz)
+            # print("--------------")
 
         # Optionally render the answer key
         if args.answers:
-            if args.no_decorate:
-                # Put one blank line between puzzle and key
-                print(f"\n{puzzkey}")
-            else:
-                print("- Answer Key -")
-                print(puzzkey)
-                print("--------------")
+            # if args.no_decorate:
+            # Put one blank line between puzzle and key
+            print(f"\n{puzzkey}")
+            # else:
+                # print("- Answer Key -")
+                # print(puzzkey)
+                # print("--------------")
 
     # We are GUI
-    elif args.use_tk or not HAVE_QT:
-        print("Using legacy Tk GUI")
-        tkmain()
-
     else:
-        qtmain()
+        if args.use_tk or not HAVE_QT:
+            print("Using legacy Tk GUI")
+            gui = tk_mainwindow
+
+        else:
+            gui = qt_mainwindow
+
+        # Pass arguments to GUI
+        if args.use_hard is not None:
+            gui.GUICommon.Defaults.use_hard = args.use_hard
+        if args.size_factor is not None:
+            gui.GUICommon.Defaults.size_fac = args.size_factor
+        if args.intersect_bias is not None:
+
+            gui.GUICommon.Defaults.intersect_bias = args.intersect_bias
+
+        # Launch
+        gui.main()
