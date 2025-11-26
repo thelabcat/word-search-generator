@@ -61,8 +61,9 @@ class GUICommon:
     def __init__(self):
         """Common stuff between the GUIs"""
 
-        # The last generated puzzle
-        self.puzz_table = None
+        # The last generated puzzle and answer key
+        self.puzzle = None
+        self.answer_key = None
 
         # The generator object we will reuse
         self.generator = Generator(self.progress_update)
@@ -151,7 +152,7 @@ class GUICommon:
 
     def update_result_buttons_able(self):
         """Set the result buttons to the appropriate current state"""
-        self.set_result_buttons_able(bool(self.puzz_table is not None and not self.is_thread_running()))
+        self.set_result_buttons_able(bool(self.puzzle and not self.is_thread_running()))
 
     def on_gen_cancel_button_click(self):
         """Start or abort generation"""
@@ -214,22 +215,8 @@ class GUICommon:
 
     def generate_puzzle(self):
         """Generate a puzzle from the input words"""
-        self.puzz_table = self.generator.gen_word_search()
+        self.puzzle, self.answer_key = self.generator.gen_word_search()
         self.last_used_words = self.current_words
-
-    @property
-    def puzzle(self) -> str:
-        """The current generated puzzle"""
-        if self.puzz_table is None:
-            return ""
-        return Generator.render_puzzle(self.puzz_table)
-
-    @property
-    def answer_key(self) -> str:
-        """The current generated puzzle's answer key"""
-        if self.puzz_table is None:
-            return ""
-        return Generator.render_puzzle(self.puzz_table, fill=False)
 
     def copy_puzzle(self):
         """Copy the puzzle to the clipboard and print to stdout"""

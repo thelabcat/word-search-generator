@@ -132,7 +132,8 @@ class Generator:
 
     # Things to fill the NumPy array
     fill_with_random = np.vectorize(lambda spot: spot if spot else random.choice(ALL_CHARS))
-    fill_with_space = np.vectorize(lambda spot: spot if spot else " ")
+    fill_with_dots = np.vectorize(lambda spot: spot if spot else "·")
+
 
     def __init__(self, progress_step: callable = None):
         """Generate a word search puzzle
@@ -334,7 +335,8 @@ class Generator:
                 Defaults to None, use stored bias.
 
         Returns:
-            table (np.array): The completed puzzle.
+            puzzle (str): The completed puzzle.
+            answers (str): The answer key.
         """
 
         # Accept words argument, or reuse stored
@@ -403,30 +405,43 @@ class Generator:
         if self.halted:
             return None
 
-        # The generation completed, so now wwe signal a stop
+        # The generation completed, so now we signal a stop
         self.halted = True
 
-        # Swap the X and Y axes for display
-        return np.rot90(np.fliplr(self.table))
+        return self.render_puzzle(), self.render_puzzle(answer_key=True)
 
-    @staticmethod
-    def render_puzzle(table: np.array, fill: bool = True) -> str:
-        """Render a NumPy array of the puzzle to text
+    def render_puzzle(self, answer_key: bool = False) -> str:
+        """Render the current puzzle
 
         Args:
-            table (np.array): The puzzle table.
-            fill (bool): Wether or not to fill out the table with random characters.
-                Defaults to True.
+            answer_key (bool): Changes to filling with dots and only capitalizing starts of words.
+                Defaults to False.
 
         Returns:
             puzzle (str): The rendered puzzle."""
 
+        # Be sure we actually have generated something
+        if self.table is None:
+            return
+
+        table = self.table.copy()
+
+        # Fill the table with dots, and make only word starts capitalized
+        if answer_key:
+            table = Generator.fill_with_dots(np.char.lower(table))
+            for _, positions in self.all_workable_posits.items():
+                pos = positions[0]
+                table[pos.x, pos.y] = table[pos.x, pos.y].upper()
+
+        # Fill out the table normally
+        else:
+            table = Generator.fill_with_random(table)
+
         return "\n".join((
             " ".join(row)
-            for row in (
-                Generator.fill_with_space,
-                Generator.fill_with_random,
-                )[fill](table)
+            # Swap the X and Y axes for display
+            for row in np.rot90(np.fliplr(table))
             ))
+
 
 # HalleluJAH!!!

@@ -105,15 +105,15 @@ if __name__ == "__main__":
         for char in "".join(words):
             assert char in ALL_CHARS, "Invalid characters detected in input"
 
-        table = Generator().gen_word_search(
+        # Generate!
+        puzz, puzzkey = Generator().gen_word_search(
             words,
             directions=DIRECTIONS if args.use_hard else EASY_DIRECTIONS,
             size_fac=args.size_factor,
             intersect_bias=args.intersect_bias,
             )
 
-        # Render the puzzle
-        puzz = Generator.render_puzzle(table)
+        # Display the results
         if args.no_decorate:
             print(puzz)
         else:
@@ -123,7 +123,6 @@ if __name__ == "__main__":
 
         # Optionally render the answer key
         if args.answers:
-            puzzkey = Generator.render_puzzle(table, fill=False)
             if args.no_decorate:
                 # Put one blank line between puzzle and key
                 print(f"\n{puzzkey}")
