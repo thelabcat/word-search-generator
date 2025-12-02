@@ -6,8 +6,8 @@ This program takes a list of words, and automatically generates a word search pu
 
 This program can be set to either use only the four easier left-to-right and downward directions (not including the down-left diagonal), or to use all eight directions when generating puzzles.
 
-Since Python is an interpreted language, the source code can run without being compiled. However, to run the code, you must install Python, which you can download at https://python.org .
-This program is currently maintained in Python 3.14. If you need to use an older Python and you encounter a compatibility issue, let me know, and I will seriously consider implementing backwards compatibility for your use case.
+There are two ways to run this program. You can run the source code directly, or download a bundled executable. Since Python is an interpreted language, the source code can run without being compiled. However, to run the code, you must install Python, which you can download at https://python.org .
+This program is currently maintained in Python 3.13. If you need to use an older Python and you encounter a compatibility issue, let me know, and I will seriously consider implementing backwards compatibility for your use case.
 
 This program also depends on the following Python libraries:
 - [NumPy](https://pypi.org/project/numpy/)
