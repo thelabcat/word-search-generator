@@ -158,4 +158,5 @@ def main() -> int:
             return 2
 
 # Run the app
-sys.exit(main())
+if __name__ == "__main__":
+    sys.exit(main())

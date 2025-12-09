@@ -6,21 +6,25 @@ This program takes a list of words, and automatically generates a word search pu
 
 This program can be set to either use only the four easier left-to-right and downward directions (not including the down-left diagonal), or to use all eight directions when generating puzzles.
 
-There are two ways to run this program. You can run the source code directly, or download a bundled executable. Since Python is an interpreted language, the source code can run without being compiled. However, to run the code, you must install Python, which you can download at https://python.org .
+There are two main ways to run this program. You can install the PyPi package, or download a bundled executable.
+
+Since Python is an interpreted language, the source code can run without being compiled. However, to run the code, you must install Python, which you can download at https://python.org .
 This program is currently maintained in Python 3.13. If you need to use an older Python and you encounter a compatibility issue, let me know, and I will seriously consider implementing backwards compatibility for your use case.
 
 This program also depends on the following Python libraries:
 - [NumPy](https://pypi.org/project/numpy/)
 - [PySide6](https://pypi.org/project/pyside6/) (weak dependency, needed only for the Qt version of the GUI)
 
+If you download this package from PyPi (after installing Python), the dependencies will be installed automatically. You can also import the algorithm as a library to use in your own projects. The PyPi version of the program script and the library name to import are `wordsearchgen`.
+
 You can find executables with bundled Python and dependencies in the Releases page of this repository.
 
 ## Installation and startup:
 
 To run from source:
-1. Download the repository as a zip, or clone it.
-2. Download and install a version of Python 3, then install the dependencies. First, try using `pip` to install them. This can be expedited by downloading the `requirements.txt` file, then running `pip install -r requirements.txt` in the console. If your main Python environment is managed "externally" (I.E. by your system package manager), you can't use `pip` without a virtual environment. Even if `pip` fails for some other reason, you might be able to get the dependencies via your system package manager.
-3. Double-click the word_search_generator.pyw file (or otherwise open it with the Python interpreter on your OS).
+1. Download and install a version of Python 3 if it is not already installed. On Linux, it probably is.
+2. If you are not on Microsoft Windows, you will likely need to install Python 3 Pip separately. Do so now.
+3. Install the package with `pip install word-search-generator`.
 
 To run from a binary, things are a bit simpler. Download the appropriate binary for your OS from the Releases page of the GitHub repository, and double-click it.
 
@@ -62,6 +66,9 @@ I have done my best to make the Tk and Qt GUIs function identically. Tk is X11 n
 You can use "Justify Center" and font size options to make things look pretty :) Remember, only the actual puzzle need use the monospaced font. Everything else can be anything you like.
 
 ## Troubleshooting
+### I cannot install via Pip on Linux, with an error about my environment being externally managed
+If your main Python environment is managed "externally" (I.E. by your system package manager), you can't use `pip` without a virtual environment. Such an environment is usually pretty easy to set up. One command creates a virtual environment, and a second activates it for any terminal session. Look into how to use the Python `venv` library.
+
 ### The puzzle does not actually copy to the clipboard, so pasting fails
 You are probably using the Tk GUI on Wayland. To get around this without installing anything, run the program from / with the command line. Clicking the result buttons will also print the puzzle to Standard Output (I.E. the command line window). You can do this on Windows easily by renaming the file `word_search_generator.pyw` to just `word_search_generator.py` without the `w`, then double-clicking it as usual. See [issue #1](https://github.com/thelabcat/word-search-generator/issues/1) for more information.
 
@@ -81,7 +88,7 @@ This is intended behavior, and is a limitation of the algorithm. If you really w
 This program also supports several CLI options, including running without the GUI entirely. The program will go into CLI mode if and only if the `words` option is specified.
 
 ```
-usage: word_search_generator.pyw [-h] [-t] [-H] [-s SIZE_FACTOR] [-b INTERSECT_BIAS] [-a] [words ...]
+usage: wordsearchgen [-h] [-t] [-H] [-s SIZE_FACTOR] [-b INTERSECT_BIAS] [-a] [words ...]
 
 Generate word search puzzles, CLI or GUI. CLI mode is triggered by passing any words to the command.
 
