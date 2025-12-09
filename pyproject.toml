@@ -2,10 +2,14 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/wordsearchgen"]
+
+
 [project]
 name = "word-search-generator"
-version = "2.12.0"
-keywords = ["rumble", "api", "wrapper", "livestream"]
+version = "3.2.0"
+keywords = ["puzzles", "WordSearch", "generator", "app", "games"]
 authors = [
   { name="Wilbur Jaywright", email="zargulthewizard@outlook.com" },
 ]
@@ -18,7 +22,7 @@ dependencies = [
   ]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: GNU General Public License v3 or later (LGPLv3+)",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
     "Operating System :: OS Independent",
     "Development Status :: 4 - Beta",
 ]
