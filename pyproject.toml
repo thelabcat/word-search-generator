@@ -7,7 +7,7 @@ packages = ["src/wordsearchgen"]
 
 
 [project]
-name = "word-search-generator"
+name = "word-search-app"
 version = "3.2.0"
 keywords = ["puzzles", "WordSearch", "generator", "app", "games"]
 authors = [

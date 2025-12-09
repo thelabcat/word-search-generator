@@ -24,7 +24,7 @@ You can find executables with bundled Python and dependencies in the Releases pa
 To run from source:
 1. Download and install a version of Python 3 if it is not already installed. On Linux, it probably is.
 2. If you are not on Microsoft Windows, you will likely need to install Python 3 Pip separately. Do so now.
-3. Install the package with `pip install word-search-generator`.
+3. Install the package with `pip install word-search-app`.
 
 To run from a binary, things are a bit simpler. Download the appropriate binary for your OS from the Releases page of the GitHub repository, and double-click it.
 
