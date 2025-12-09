@@ -24,8 +24,8 @@ from threading import Thread
 import tkinter as tk
 from tkinter import ttk
 
-from algorithm import INTERSECT_BIAS_NAMES
-from gui_common import GUICommon
+from .algorithm import INTERSECT_BIAS_NAMES
+from .gui_common import GUICommon
 
 TK_SIZE_FAC_OPTIONS = tuple(
     range(GUICommon.size_fac_range[0], GUICommon.size_fac_range[1] + 1),

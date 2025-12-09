@@ -148,7 +148,7 @@ class Generator:
         self.words = None
         self.size_fac = SIZE_FAC_DEFAULT
         self.dim = 1
-        self.directions = ()
+        self.directions = DIRECTIONS
         self.intersect_bias = 0
         self.reset_generation_data()
 

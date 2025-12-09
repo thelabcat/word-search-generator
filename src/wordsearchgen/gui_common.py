@@ -20,7 +20,7 @@ this program. If not, see <https://www.gnu.org/licenses/>.
 S.D.G."""
 
 
-from algorithm import (
+from .algorithm import (
     Generator,
     ALL_CHARS,
     DIRECTIONS,

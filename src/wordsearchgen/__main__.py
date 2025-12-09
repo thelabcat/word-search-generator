@@ -1,27 +1,40 @@
 #!/usr/bin/env python3
-"""Word Search Generator main
+"""Word Search Generator app main
 
-Generate word search puzzles with a GUI or a CLI
+The app face of the program, both CLI and GUI.
 
 This file is part of Word Search Generator.
 
-Word Search Generator is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by the Free
-Software Foundation, either version 3 of the License, or (at your option) any
-later version.
+Word Search Generator is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with
-this program. If not, see <https://www.gnu.org/licenses/>."""
+this program. If not, see <https://www.gnu.org/licenses/>.
+
+S.D.G."""
+
 
 import argparse
 import os
 import sys
 from warnings import warn
-from algorithm import (
+
+try:
+    from . import qt_mainwindow
+    HAVE_QT = True
+except ImportError as e:
+    warn(f"Could not import the Qt GUI module: {e}")
+    HAVE_QT = False
+
+from . import tk_mainwindow
+
+from .algorithm import (
     Generator,
     ALL_CHARS,
     DIRECTIONS,
@@ -31,17 +44,13 @@ from algorithm import (
     INTERSECT_BIAS_DEFAULT,
     )
 
-try:
-    import qt_mainwindow
-    HAVE_QT = True
-except ImportError as e:
-    warn(f"Could not import the Qt GUI module: {e}")
-    HAVE_QT = False
+def main() -> int:
+    """
+    The app main function
 
-import tk_mainwindow
-
-# If this program was launched directly, run it
-if __name__ == "__main__":
+    Returns:
+        Status (int): The exit status of the program.
+    """
     parser = argparse.ArgumentParser(
         prog=os.path.basename(__file__),
         description="Generate word search puzzles, CLI or GUI. CLI mode is " +
@@ -102,7 +111,9 @@ if __name__ == "__main__":
 
         # Checkpoint for valid word entries
         for char in "".join(words):
-            assert char in ALL_CHARS, "Invalid characters detected in input"
+            if char not in ALL_CHARS:
+                print("Invalid characters detected in input")
+                return 1
 
         # Generate!
         puzz, puzzkey = Generator().gen_word_search(
@@ -113,22 +124,12 @@ if __name__ == "__main__":
             )
 
         # Display the results
-        # if args.no_decorate:
         print(puzz)
-        # else:
-            # print("--- Puzzle ---")
-            # print(puzz)
-            # print("--------------")
 
         # Optionally render the answer key
         if args.answers:
-            # if args.no_decorate:
             # Put one blank line between puzzle and key
             print(f"\n{puzzkey}")
-            # else:
-                # print("- Answer Key -")
-                # print(puzzkey)
-                # print("--------------")
 
     # We are GUI
     else:
@@ -149,4 +150,12 @@ if __name__ == "__main__":
             gui.GUICommon.Defaults.intersect_bias = args.intersect_bias
 
         # Launch
-        gui.main()
+        try:
+            gui.main()
+            return 0
+        except Exception as e:
+            print(repr(e))
+            return 2
+
+# Run the app
+sys.exit(main())

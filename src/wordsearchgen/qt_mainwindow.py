@@ -35,8 +35,8 @@ from PySide6.QtWidgets import (
     QPushButton,
     )
 
-from algorithm import INTERSECT_BIAS_NAMES
-from gui_common import GUICommon
+from .algorithm import INTERSECT_BIAS_NAMES
+from .gui_common import GUICommon
 
 
 class QtWindow(QWidget, GUICommon):
