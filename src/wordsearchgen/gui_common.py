@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Word Search Generator common GUI class
 
-Present a GUI for the word search generator algorithm (Tkitner)
+Present a GUI for the word search generator algorithm (abstract base class)
 
 This file is part of Word Search Generator.
 
