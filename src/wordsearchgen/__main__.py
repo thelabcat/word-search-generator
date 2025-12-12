@@ -44,6 +44,7 @@ from .algorithm import (
     INTERSECT_BIAS_DEFAULT,
     )
 
+
 def main() -> int:
     """
     The app main function
