@@ -8,14 +8,14 @@ packages = ["src/wordsearchgen"]
 
 [project]
 name = "word-search-app"
-version = "3.2.2"
+version = "3.2.3"
 keywords = ["puzzles", "WordSearch", "generator", "app", "games"]
 authors = [
   { name="Wilbur Jaywright", email="zargulthewizard@outlook.com" },
 ]
 description = "Generate word search puzzles"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11.2"
 dependencies = [
   "numpy",
   "pyside6", # Weak dependency, only for the Qt GUI

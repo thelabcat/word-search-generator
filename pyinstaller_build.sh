@@ -43,17 +43,17 @@ else
     source ./.venv/bin/activate
 fi
 
-progname="word_search_generator"
+progname="wordsearchgen"
 output_name="$progname-$os_suffix-$(uname -m)"
 echo "Executable output name determined to be $output_name"
 
 echo "Installing requirements"
-pip install -r requirements.txt
+pip install -U -r requirements.txt
 pip install -U setuptools pyinstaller
 
 echo "Building exe"
 # --icon=$progname.ico --add-data $progname.png:.
-pyinstaller -F --name "$output_name" $progname.pyw 2>&1 | tee pyinstaller_build_log.txt
+pyinstaller -w -F --name "$output_name" --hidden-import $progname.__main__ src/$progname\_wrap.py  2>&1 | tee pyinstaller_build_log.txt
 
 echo "Cleaning up exe build residue"
 rm -rf build
