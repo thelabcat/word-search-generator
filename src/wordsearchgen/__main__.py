@@ -21,7 +21,6 @@ S.D.G."""
 
 
 import argparse
-import os
 import sys
 from warnings import warn
 
@@ -53,7 +52,7 @@ def main() -> int:
         Status (int): The exit status of the program.
     """
     parser = argparse.ArgumentParser(
-        prog=os.path.basename("wordsearchgen"),
+        prog="wordsearchgen",
         description="Generate word search puzzles, CLI or GUI. CLI mode is " +
         "triggered by passing any words to the command.",
         epilog="S.D.G.",
@@ -89,11 +88,6 @@ def main() -> int:
         action="store_true",
         help="(CLI) Also print the puzzle with no filler characters",
         )
-    # parser.add_argument(
-        # "-d", "--no-decorate",
-        # action="store_true",
-        # help="(CLI) Don't print decoration lines around puzzle and key",
-        # )
     parser.add_argument(
         "words",
         nargs="*",
@@ -157,6 +151,7 @@ def main() -> int:
         except Exception as e:
             print(repr(e))
             return 2
+
 
 # Run the app
 if __name__ == "__main__":
