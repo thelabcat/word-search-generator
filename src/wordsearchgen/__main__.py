@@ -53,7 +53,7 @@ def main() -> int:
         Status (int): The exit status of the program.
     """
     parser = argparse.ArgumentParser(
-        prog=os.path.basename(__file__),
+        prog=os.path.basename("wordsearchgen"),
         description="Generate word search puzzles, CLI or GUI. CLI mode is " +
         "triggered by passing any words to the command.",
         epilog="S.D.G.",
