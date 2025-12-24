@@ -1,6 +1,6 @@
 # Word Search Generator
 
-![Screenshot](qt_main_window_screenshot.png "The main app window, Qt version")
+![Screenshot](https://github.com/thelabcat/word-search-generator/blob/main/qt_main_window_screenshot.png?raw=true "The main app window, Qt version")
 
 This program takes a list of words, and automatically generates a word search puzzle from them.
 
@@ -24,7 +24,7 @@ You can find executables with bundled Python and dependencies in the Releases pa
 To run from source:
 1. Download and install a version of Python 3 if it is not already installed. On Linux, it probably is.
 2. If you are not on Microsoft Windows, you will likely need to install Python 3 Pip separately. Do so now.
-3. Install the package with `pip install word-search-generator`.
+3. Install the package with `pip install word-search-app`.
 
 To run from a binary, things are a bit simpler. Download the appropriate binary for your OS from the Releases page of the GitHub repository, and double-click it.
 
@@ -70,7 +70,7 @@ You can use "Justify Center" and font size options to make things look pretty :)
 If your main Python environment is managed "externally" (I.E. by your system package manager), you can't use `pip` without a virtual environment. Such an environment is usually pretty easy to set up. One command creates a virtual environment, and a second activates it for any terminal session. Look into how to use the Python `venv` library.
 
 ### The puzzle does not actually copy to the clipboard, so pasting fails
-You are probably using the Tk GUI on Wayland. To get around this without installing anything, run the program from / with the command line. Clicking the result buttons will also print the puzzle to Standard Output (I.E. the command line window). You can do this on Windows easily by renaming the file `word_search_generator.pyw` to just `word_search_generator.py` without the `w`, then double-clicking it as usual. See [issue #1](https://github.com/thelabcat/word-search-generator/issues/1) for more information.
+You are probably using the Tk GUI on Wayland. To get around this without installing anything, run the program from / with the command line. Clicking the result buttons will also print the puzzle to Standard Output (I.E. the command line window). See [issue #1](https://github.com/thelabcat/word-search-generator/issues/1) for more information.
 
 ### Application fails to launch from source on Linux, and launching from CLI gives message about missing Qt plugin
 You are probably using X11. See [issue #11](https://github.com/thelabcat/word-search-generator/issues/11) for more information. You can force the app to use Tk instead with the `--use-tk` command line option, or just run the app with no GUI, or try to install [these dependencies for Qt 6 on X11](https://doc.qt.io/qt-6/linux-requirements.html). Note: The bundled Linux executable should have these dependencies inside it, so if you are having this issue while using the Linux bundled executable, let me know.

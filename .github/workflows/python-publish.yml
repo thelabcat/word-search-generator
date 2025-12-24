@@ -26,6 +26,9 @@ jobs:
         with:
           python-version: "3.x"
 
+      - name: Clean old builds
+        run: rm -rf dist/ build/ *.egg-info
+
       - name: Build release distributions
         run: |
           # NOTE: put your own distribution build steps here.
