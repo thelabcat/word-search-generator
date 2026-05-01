@@ -1,6 +1,6 @@
 # Word Search Generator
 
-![Screenshot](https://github.com/thelabcat/word-search-generator/blob/main/qt_main_window_screenshot.png?raw=true "The main app window, Qt version")
+![Screenshot](https://github.com/thelabcat/word-search-generator/blob/master/qt_main_window_screenshot.png?raw=true "The main app window, Qt version")
 
 This program takes a list of words and automatically generates a word search puzzle from them.
 
