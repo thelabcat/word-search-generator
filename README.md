@@ -16,8 +16,8 @@ These are portable executables. Double-click them to run. They will not install 
 
 ## Installing from PYPI
 
-Since Python is an interpreted language, the source code can run without being compiled. However, to run the code, you must install Python, which you can download at https://python.org .
-This program is currently maintained in Python 3.13. If you need to use an older Python and you encounter a compatibility issue, let me know, and I will seriously consider implementing backwards compatibility for your use case.
+Since Python is an interpreted language, the source code can run without being compiled. However, to run the code either as a PYPI package or manually, you must install Python, which you can download at https://python.org .
+This program is currently maintained in Python 3.14. If you need to use an older Python and you encounter a compatibility issue, let me know, and I will seriously consider implementing backwards compatibility for your use case.
 
 If you download this package from PyPi (after installing Python), the dependencies will be installed automatically. If you do that, you can also import the algorithm as a library to use in your own Python projects. Like the script command name to run in terminal, the library name to import in your projects is also `wordsearchgen`.
 
