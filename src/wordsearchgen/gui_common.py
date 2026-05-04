@@ -27,7 +27,7 @@ from .algorithm import (
     EASY_DIRECTIONS,
     SIZE_FAC_DEFAULT,
     INTERSECT_BIAS_DEFAULT,
-    )
+)
 
 
 class GUICommon:
@@ -98,7 +98,7 @@ class GUICommon:
         raise NotImplementedError
 
     @property
-    def words_entry_raw(self):
+    def words_entry_raw(self) -> str:
         """The raw entry in the text area"""
         raise NotImplementedError
 
@@ -131,7 +131,7 @@ class GUICommon:
         """Set if the GUI is currently enabled"""
         raise NotImplementedError
 
-    #@property
+    # @property
     def is_thread_running(self) -> bool:
         """Wether or not the thread is still running"""
         raise NotImplementedError
@@ -152,7 +152,8 @@ class GUICommon:
 
     def update_result_buttons_able(self):
         """Set the result buttons to the appropriate current state"""
-        self.set_result_buttons_able(bool(self.puzzle and not self.is_thread_running()))
+        self.set_result_buttons_able(
+            bool(self.puzzle and not self.is_thread_running()))
 
     def on_gen_cancel_button_click(self):
         """Start or abort generation"""
@@ -189,7 +190,8 @@ class GUICommon:
             return
 
         # Filter out disallowed characters
-        text = "".join(c for c in text if c.upper() in ALL_CHARS or c.isspace())
+        text = "".join(c for c in text if c.upper()
+                       in ALL_CHARS or c.isspace())
 
         # Break words to one line each
         lines = text.split()
@@ -209,9 +211,9 @@ class GUICommon:
         """Write current GUI settings to generator memory before starting"""
 
         self.generator.words = self.current_words
-        self.generator.directions=self.directions
-        self.generator.size_fac=self.size_factor
-        self.generator.intersect_bias=self.intersect_bias
+        self.generator.directions = self.directions
+        self.generator.size_fac = self.size_factor
+        self.generator.intersect_bias = self.intersect_bias
 
     def generate_puzzle(self):
         """Generate a puzzle from the input words"""
