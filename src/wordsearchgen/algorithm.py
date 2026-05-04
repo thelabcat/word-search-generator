@@ -37,7 +37,7 @@ DIRECTIONS = [
     (-1, 0),
     (-1, -1),
     (0, -1),
-    ]
+]
 
 EASY_DIRECTIONS = DIRECTIONS[:4]  # Easy mode directions
 
@@ -102,28 +102,31 @@ class Position:
 
         if self.dx:
             # Travel in the direction of delta X, starting at our position
-            xarray = np.array(range(self.x, self.x + self.dx * length, self.dx))
+            xarray = np.array(
+                range(self.x, self.x + self.dx * length, self.dx))
         else:
             # X does not change
             xarray = np.array([self.x] * length)
 
         if self.dy:
             # Travel in the direction of delta Y, starting at our position
-            yarray = np.array(range(self.y, self.y + self.dy * length, self.dy))
+            yarray = np.array(
+                range(self.y, self.y + self.dy * length, self.dy))
         else:
             # Y does not change
             yarray = np.array([self.y] * length)
 
         return xarray, yarray
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         """
         Is this position equal to another?
 
         Args:
             other (position): The position to compare to"""
 
-        assert isinstance(other, type(self)), "Cannot compare position to non-position"
+        assert isinstance(other, type(
+            self)), "Cannot compare position to non-position"
         return self.x, self.y, self.direction == other.x, other.y, other.direction
 
 
@@ -131,9 +134,9 @@ class Generator:
     """Generate a word search puzzle"""
 
     # Things to fill the NumPy array
-    fill_with_random = np.vectorize(lambda spot: spot if spot else random.choice(ALL_CHARS))
+    fill_with_random = np.vectorize(
+        lambda spot: spot if spot else random.choice(ALL_CHARS))
     fill_with_dots = np.vectorize(lambda spot: spot if spot else "·")
-
 
     def __init__(self, progress_step: callable = None):
         """Generate a word search puzzle
@@ -169,7 +172,7 @@ class Generator:
         self.index = 0
 
     @staticmethod
-    def get_puzzle_dim(words: list[str], size_fac: int):
+    def get_puzzle_dim(words: list[str], size_fac: int) -> int:
         """
         Calculate puzzle dimension by word list.
 
@@ -188,10 +191,10 @@ class Generator:
         return max((
             int((word_letter_total * size_fac) ** 0.5),
             len(max(words, key=len)),
-            ))
+        ))
 
     @staticmethod
-    def create_empty_table(dim: int):
+    def create_empty_table(dim: int) -> np.array:
         """
         Create the empty 2D table to build the puzzle.
 
@@ -213,7 +216,7 @@ class Generator:
     def all_posits(
             dim: int,
             directions: Sequence[tuple[int, int]] = DIRECTIONS,
-            ) -> tuple[Position]:
+    ) -> list[Position]:
         """
         Generate list of all possible positions.
 
@@ -223,7 +226,7 @@ class Generator:
                 Defaults to DIRECTIONS.
 
         Returns:
-            positions (tuple[Position]): All positions in all directions
+            positions (list[Position]): All positions in all directions
         """
 
         return [
@@ -231,7 +234,7 @@ class Generator:
             for x in range(dim)
             for y in range(dim)
             for direction in directions
-            ]
+        ]
 
     @staticmethod
     def can_place(word: str, pos: Position, puzzle: np.array) -> (bool, int):
@@ -277,7 +280,7 @@ class Generator:
         return self.words[self.index]
 
     @property
-    def cur_workable_posits(self):
+    def cur_workable_posits(self) -> list[Position]:
         """The workable positions for the current word"""
 
         if self.cur_word is None:
@@ -288,14 +291,15 @@ class Generator:
             cur_workable_posits = [
                 pos for pos in self.all_positions
                 if Generator.can_place(self.cur_word, pos, self.table)[0]
-                ]
+            ]
             random.shuffle(cur_workable_posits)
 
             # Be biased about word intersections
             if self.intersect_bias:
                 cur_workable_posits.sort(
-                    key=lambda pos: Generator.can_place(self.cur_word, pos, self.table)[1]
-                    )
+                    key=lambda pos: Generator.can_place(
+                        self.cur_word, pos, self.table)[1]
+                )
                 # Favor intersections rather than avoid them
                 if self.intersect_bias > 0:
                     cur_workable_posits.reverse()
@@ -314,7 +318,7 @@ class Generator:
             directions: Sequence[tuple[int, int]] = None,
             size_fac: int = None,
             intersect_bias: int | bool = None,
-            ) -> list[list[str]]:
+    ) -> (str, str):
         """
         Generate a word search puzzle.
 
@@ -352,7 +356,8 @@ class Generator:
         if size_fac is not None:
             self.size_fac = size_fac
 
-        self.dim = Generator.get_puzzle_dim(self.words, self.size_fac)  # Generate puzzle dimension
+        self.dim = Generator.get_puzzle_dim(
+            self.words, self.size_fac)  # Generate puzzle dimension
 
         # Store other arguments
         if directions is not None:
@@ -421,8 +426,7 @@ class Generator:
             puzzle (str): The rendered puzzle."""
 
         # Be sure we actually have generated something
-        if self.table is None:
-            return
+        assert self.table is not None, "Cannot render puzzle when it is not yet generated"
 
         table = self.table.copy()
 
@@ -441,7 +445,7 @@ class Generator:
             " ".join(row)
             # Swap the X and Y axes for display
             for row in np.rot90(np.fliplr(table))
-            ))
+        ))
 
 
 # HalleluJAH!!!
