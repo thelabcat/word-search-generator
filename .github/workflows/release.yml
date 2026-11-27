@@ -4,8 +4,16 @@
 #   1. Merge devel into master and push master.
 #   2. Publish a GitHub release whose tag is "v" + the version in
 #      pyproject.toml, e.g. version 3.1.1 -> tag v3.1.1-beta (or v3.1.1).
-#   3. This workflow does the rest: builds the packages, attaches them to the
-#      release and uploads to PyPI.
+#   3. This workflow does the rest: builds the packages and the executables
+#      (Windows, Linux x86_64, Linux aarch64), attaches them to the release and
+#      uploads to PyPI.
+#
+# Each executable is attached under two names. The first never changes, so
+# https://github.com/thelabcat/word-search-generator/releases/latest/download/wordsearchgen-win-x86_64.exe
+# (and the same with wordsearchgen-linux-x86_64 or wordsearchgen-linux-aarch64)
+# is always the newest one: that is the link for the website download buttons.
+# The second has the version in it, e.g. wordsearchgen-3.3.0-win-x86_64.exe, and
+# is the same file, kept for the record. "latest" skips pre-releases and drafts.
 #
 # Failsafes:
 #   - Nothing public happens until every check in the "check" job passes.
@@ -16,7 +24,8 @@
 #     so you can fix the problem and publish the draft again.
 #
 # Dry run: pull requests, and "Run workflow" on the Actions tab, only run the
-# "check" job. They never publish anything.
+# "check" and "exe" jobs (so the executable builds and their tests are tried out
+# before a release). They never publish anything.
 
 name: Release
 
@@ -43,6 +52,9 @@ env:
   PACKAGE: word-search-app  # The project name on PyPI
   DIST_NAME: word_search_app  # How the built package files are named
   PYTHON_VERSION: "3.11"  # The oldest Python that pyproject.toml supports
+  EXE_PYTHON_VERSION: "3.13"  # Python used to build the executables
+  EXE_NAME: wordsearchgen  # How the executable files are named
+  EXE_STABLE: wordsearchgen-win-x86_64.exe wordsearchgen-linux-x86_64 wordsearchgen-linux-aarch64  # The names that never change (space separated)
 
 jobs:
   check:
@@ -141,9 +153,77 @@ jobs:
           if-no-files-found: error
 
 
-  attach:
-    name: Attach packages to the release
+  exe:
+    name: Build and test ${{ matrix.stable }}
     needs: check
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            stable: wordsearchgen-win-x86_64.exe
+          # The oldest Ubuntu GitHub offers: a program only runs on systems
+          # with the same C library as the one it was built on, or newer.
+          - os: ubuntu-22.04
+            stable: wordsearchgen-linux-x86_64
+          - os: ubuntu-24.04-arm
+            stable: wordsearchgen-linux-aarch64
+    defaults:
+      run:
+        shell: bash
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+      STABLE: ${{ matrix.stable }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.EXE_PYTHON_VERSION }}
+
+      # Libraries that Qt and Tk need on Linux, and a fake screen for the GUI test
+      - name: Install Linux libraries
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libtk8.6 libegl1 libgl1 libxkbcommon-x11-0 libxcb-cursor0 \
+            libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-shape0 \
+            libxcb-xinerama0 libxcb-xkb1 libdbus-1-3 libfontconfig1
+
+      - name: Install the app and PyInstaller
+        run: |
+          python -m pip install --upgrade pip
+          pip install . pyinstaller
+
+      - name: Build the executable
+        run: python .github/scripts/build_exe.py "${STABLE%.exe}"
+
+      - name: Test the executable
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            xvfb-run -a python .github/scripts/smoke_test_exe.py "dist-exe/$STABLE"
+          else
+            python .github/scripts/smoke_test_exe.py "dist-exe/$STABLE"
+          fi
+
+      - name: Name the executable files
+        run: |
+          mkdir exe-out
+          cp "dist-exe/$STABLE" "exe-out/$STABLE"
+          cp "dist-exe/$STABLE" "exe-out/${EXE_NAME}-${VERSION}-${STABLE#"${EXE_NAME}"-}"
+          ls -l exe-out
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: exe-${{ matrix.stable }}
+          path: exe-out/
+          if-no-files-found: error
+
+
+  attach:
+    name: Attach packages and executables to the release
+    needs: [check, exe]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
@@ -154,12 +234,18 @@ jobs:
           name: dist
           path: dist
 
-      - name: Upload packages to the release
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: exe-*
+          path: exe-out
+          merge-multiple: true
+
+      - name: Upload packages and executables to the release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           TAG: ${{ github.event.release.tag_name }}
-        run: gh release upload "$TAG" dist/* --clobber
+        run: gh release upload "$TAG" dist/* exe-out/* --clobber
 
   pypi:
     name: Upload to PyPI
@@ -181,7 +267,7 @@ jobs:
 
   rollback:
     name: Roll back after a failure
-    needs: [check, attach, pypi]
+    needs: [check, exe, attach, pypi]
     if: github.event_name == 'release' && (failure() || cancelled())
     runs-on: ubuntu-latest
     permissions:
@@ -222,10 +308,11 @@ jobs:
           echo "PyPI does not have $PACKAGE $VERSION (HTTP $STATUS). Rolling back."
           echo "on_pypi=false" >> "$GITHUB_OUTPUT"
 
-      - name: Remove packages from the release
+      - name: Remove packages and executables from the release
         if: always() && steps.pypi.outputs.on_pypi == 'false'
         run: |
-          gh api "repos/$REPO/releases/$RELEASE_ID/assets" --jq '.[] | select(.name | startswith(env.DIST_NAME + "-" + env.VERSION)) | "\(.id) \(.name)"' |
+          # shellcheck disable=SC2016  # $stable is a jq variable, not a shell one
+          gh api "repos/$REPO/releases/$RELEASE_ID/assets" --jq '(env.EXE_STABLE | split(" ")) as $stable | .[] | select(.name as $n | ($n | startswith(env.DIST_NAME + "-" + env.VERSION)) or ($n | startswith(env.EXE_NAME + "-" + env.VERSION)) or ($stable | index($n) != null)) | "\(.id) \(.name)"' |
           while read -r ID NAME; do
             gh api -X DELETE "repos/$REPO/releases/assets/$ID"
             echo "Removed $NAME from the release."

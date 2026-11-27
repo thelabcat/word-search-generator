@@ -10,9 +10,9 @@ There are two main ways to run this program. You can download a bundled executab
 
 ## Executable download
 
-[Download EXE](https://github.com/thelabcat/word-search-generator/releases/latest/download/wordsearchgen-win-x86_64.exe)    [Download for Linux](https://github.com/thelabcat/word-search-generator/releases/latest/download/wordsearchgen-linux-x86_64)
+[Download EXE](https://github.com/thelabcat/word-search-generator/releases/latest/download/wordsearchgen-win-x86_64.exe) (Windows)    [Download for Linux](https://github.com/thelabcat/word-search-generator/releases/latest/download/wordsearchgen-linux-x86_64) (x86_64)    [Download for Linux ARM](https://github.com/thelabcat/word-search-generator/releases/latest/download/wordsearchgen-linux-aarch64) (aarch64)
 
-These are portable executables. Double-click them to run. They will not install anything.
+These are portable executables. Double-click them to run. They will not install anything. On Linux, you may first have to mark the file as executable (`chmod +x wordsearchgen-linux-x86_64`), and the Linux executables were built on Ubuntu 22.04, so they need a system with a C library at least as new as that one. Older versions are on the [releases page](https://github.com/thelabcat/word-search-generator/releases).
 
 ## Installing from PYPI
 
