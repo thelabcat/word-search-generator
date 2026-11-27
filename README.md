@@ -8,11 +8,11 @@ This program can be set to either use only the four easier left-to-right and dow
 
 There are two main ways to run this program. You can download a bundled executable, or install the PyPi package. The bundled executables will have slower launch times, but are easier to set up.
 
-## Executable download
+## Executable download (64-bit only)
 
-[Download EXE](https://github.com/thelabcat/word-search-generator/releases/latest/download/wordsearchgen-win-x86_64.exe)    [Download for Linux](https://github.com/thelabcat/word-search-generator/releases/latest/download/wordsearchgen-linux-x86_64)
+[Download Windows EXE](https://github.com/thelabcat/word-search-generator/releases/latest/download/wordsearchgen-win-x86_64.exe)  [Download Linux x86 binary](https://github.com/thelabcat/word-search-generator/releases/latest/download/wordsearchgen-linux-x86_64)  [Download Linux ARM binary](https://github.com/thelabcat/word-search-generator/releases/latest/download/wordsearchgen-linux-aarch64)
 
-These are portable executables. Double-click them to run. They will not install anything.
+These are portable executables. Double-click them to run. They will not install anything. On Linux, you may first have to mark the file as executable (`chmod +x wordsearchgen-linux-x86_64`), and the Linux executables were built on Ubuntu 22.04, so they need a system with a C library at least as new as that one. Older versions are on the [releases page](https://github.com/thelabcat/word-search-generator/releases).
 
 ## Installing from PYPI
 
