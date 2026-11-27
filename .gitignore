@@ -1,3 +1,6 @@
 *.pyc
 dist/*
-pyinstaller_build_log.txt
+build/
+build-exe/
+dist-exe/
+*.spec
