@@ -15,6 +15,7 @@ S.D.G.
 import os
 import subprocess
 import sys
+import tempfile
 import time
 
 WINDOW_TITLE = "Word Search Gen"
@@ -68,7 +69,9 @@ def window_titles() -> list:
 
 
 def gui_test(exe: str, extra_args: list, label: str) -> None:
-    proc = subprocess.Popen([exe] + extra_args)
+    # Keep what the program says on stderr, to catch a Qt that silently fell back to Tk
+    errfile = tempfile.TemporaryFile()
+    proc = subprocess.Popen([exe] + extra_args, stderr=errfile)
     try:
         if IS_WINDOWS:
             deadline = time.time() + 60
@@ -84,6 +87,10 @@ def gui_test(exe: str, extra_args: list, label: str) -> None:
         else:
             time.sleep(15)
             assert proc.poll() is None, f"The {label} GUI exited within 15 s with code {proc.returncode}"
+            errfile.seek(0)
+            said = errfile.read().decode(errors="replace")
+            print(f"{label} GUI stderr: {said!r}")
+            assert "Could not import the Qt GUI module" not in said, "Qt did not load (the program fell back to Tk)"
             print(f"GUI test passed ({label}): still running after 15 s.")
     finally:
         # Kill the whole tree: onefile programs start a child process
